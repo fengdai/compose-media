@@ -1,0 +1,18 @@
+# Android
+local.properties
+*.DS_Store
+
+# Gradle
+.gradle
+build
+**/build
+
+# Intellij
+*.iml
+*.ipr
+*.iws
+.idea
+
+# Docs
+docs/api
+site
