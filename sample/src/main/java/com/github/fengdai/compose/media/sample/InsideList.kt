@@ -33,7 +33,9 @@ fun InsideList(navController: NavHostController) {
                 }
             )
         },
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .systemBarsPadding(),
     ) { padding ->
         InsideListContent(Modifier.fillMaxSize(), padding)
     }

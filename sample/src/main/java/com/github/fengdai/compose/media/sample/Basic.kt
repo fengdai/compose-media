@@ -51,7 +51,9 @@ fun Basic(navController: NavHostController) {
                 }
             )
         },
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .systemBarsPadding(),
     ) { padding ->
         BasicContent(
             Modifier
