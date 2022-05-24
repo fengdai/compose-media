@@ -31,7 +31,7 @@ fun StyledPlayerControlViewController(
         },
         modifier = modifier
     ) {
-        it.player = state.player
+        it.player = state.playerState?.player
         it.showTimeoutMs =
             if (controllerState.shouldShowIndefinitely) 0
             else showTimeoutMs

@@ -159,12 +159,12 @@ fun Media(
 
     // shutter
     var closeShutter by remember { mutableStateOf(true) }
-    val player = state.player
-    key(player) {
+    val playerState = state.playerState
+    key(playerState) {
         var isNewPlayer by remember { mutableStateOf(true) }
-        val tracksInfo = state.tracksInfo
+        val tracksInfo = playerState?.tracksInfo
         DisposableEffect(tracksInfo, keepContentOnPlayerReset) {
-            if (player == null || tracksInfo?.trackGroupInfos.isNullOrEmpty()) {
+            if (playerState == null || tracksInfo?.trackGroupInfos.isNullOrEmpty()) {
                 if (!keepContentOnPlayerReset) {
                     closeShutter = true
                 }
@@ -179,47 +179,49 @@ fun Media(
         isNewPlayer = false
     }
 
-    DisposableEffect(state.player) {
-        val listener = object : Player.Listener {
-            override fun onVideoSizeChanged(videoSize: VideoSize) {
-                var videoAspectRatio = if (videoSize.height == 0) 0f
-                else videoSize.width * videoSize.pixelWidthHeightRatio / videoSize.height
+    if (playerState != null) {
+        DisposableEffect(playerState) {
+            val listener = object : Player.Listener {
+                override fun onVideoSizeChanged(videoSize: VideoSize) {
+                    var videoAspectRatio = if (videoSize.height == 0) 0f
+                    else videoSize.width * videoSize.pixelWidthHeightRatio / videoSize.height
 
-                if (surfaceType == SurfaceType.TextureView) {
-                    val unappliedRotationDegrees = videoSize.unappliedRotationDegrees
-                    // Try to apply rotation transformation when our surface is a TextureView.
-                    if (videoAspectRatio > 0
-                        && (unappliedRotationDegrees == 90 || unappliedRotationDegrees == 270)
+                    if (surfaceType == SurfaceType.TextureView) {
+                        val unappliedRotationDegrees = videoSize.unappliedRotationDegrees
+                        // Try to apply rotation transformation when our surface is a TextureView.
+                        if (videoAspectRatio > 0
+                            && (unappliedRotationDegrees == 90 || unappliedRotationDegrees == 270)
+                        ) {
+                            // We will apply a rotation 90/270 degree to the output texture of the TextureView.
+                            // In this case, the output video's width and height will be swapped.
+                            videoAspectRatio = 1 / videoAspectRatio
+                        }
+                        textureViewRotation = videoSize.unappliedRotationDegrees
+                    }
+
+                    currentAspectRatioSetter(videoAspectRatio)
+                }
+
+                override fun onRenderedFirstFrame() {
+                    closeShutter = false
+                }
+
+                override fun onEvents(player: Player, events: Player.Events) {
+                    if (events.containsAny(
+                            Player.EVENT_PLAYBACK_STATE_CHANGED,
+                            Player.EVENT_PLAY_WHEN_READY_CHANGED
+                        )
                     ) {
-                        // We will apply a rotation 90/270 degree to the output texture of the TextureView.
-                        // In this case, the output video's width and height will be swapped.
-                        videoAspectRatio = 1 / videoAspectRatio
-                    }
-                    textureViewRotation = videoSize.unappliedRotationDegrees
-                }
-
-                currentAspectRatioSetter(videoAspectRatio)
-            }
-
-            override fun onRenderedFirstFrame() {
-                closeShutter = false
-            }
-
-            override fun onEvents(player: Player, events: Player.Events) {
-                if (events.containsAny(
-                        Player.EVENT_PLAYBACK_STATE_CHANGED,
-                        Player.EVENT_PLAY_WHEN_READY_CHANGED
-                    )
-                ) {
-                    if (state.controllerState.autoShow) {
-                        state.controllerState.maybeShow()
+                        if (state.controllerState.autoShow) {
+                            state.controllerState.maybeShow()
+                        }
                     }
                 }
             }
-        }
-        state.player?.addListener(listener)
-        onDispose {
-            state.player?.removeListener(listener)
+            playerState.player.addListener(listener)
+            onDispose {
+                playerState.player.removeListener(listener)
+            }
         }
     }
 
@@ -229,14 +231,14 @@ fun Media(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
             ) {
-                if (controller != null && state.player != null) {
+                if (controller != null && playerState != null) {
                     state.controllerState.toggleVisibility()
                 }
             }
     ) {
         // video
         VideoSurface(
-            player = state.player,
+            player = playerState?.player,
             surfaceType = surfaceType,
             modifier = Modifier
                 .align(Alignment.Center)
@@ -252,18 +254,18 @@ fun Media(
         )
 
         // artwork in audio stream
-        val hideArtwork by remember(state, useArtwork, keepContentOnPlayerReset) {
+        val hideArtwork by remember(playerState, useArtwork, keepContentOnPlayerReset) {
             derivedStateOf {
                 !useArtwork
                         ||
-                        (state.tracksInfo?.run {
+                        (playerState?.tracksInfo?.run {
                             (trackGroupInfos.isEmpty() && !keepContentOnPlayerReset)
                                     || isTypeSelected(C.TRACK_TYPE_VIDEO)
                         } ?: true)
             }
         }
         if (!hideArtwork) {
-            val artworkData = state.mediaMetadata?.artworkData
+            val artworkData = playerState?.mediaMetadata?.artworkData
             val metadataArtwork by remember(artworkData) {
                 lazy {
                     artworkData?.run {
@@ -293,13 +295,13 @@ fun Media(
         }
 
         // subtitles
-        val cues = state.cues.takeIf { !it.isNullOrEmpty() } ?: emptyList()
+        val cues = playerState?.cues.takeIf { !it.isNullOrEmpty() } ?: emptyList()
         subtitles?.invoke(cues)
 
         // buffering
-        val isBufferingShowing by remember(state, showBuffering) {
+        val isBufferingShowing by remember(playerState, showBuffering) {
             derivedStateOf {
-                state.maybeEnterPlayerScope {
+                playerState?.run {
                     playbackState == Player.STATE_BUFFERING
                             && (showBuffering == ShowBuffering.Always
                             || (showBuffering == ShowBuffering.WhenPlaying && playWhenReady))
@@ -309,7 +311,7 @@ fun Media(
         if (isBufferingShowing) buffering?.invoke()
 
         // error message
-        state.playerError?.run {
+        playerState?.playerError?.run {
             errorMessage?.invoke(this)
         }
 
@@ -317,8 +319,8 @@ fun Media(
         overlay?.invoke()
 
         // controller
-        DisposableEffect(state.player) {
-            if (state.player == null) {
+        DisposableEffect(playerState) {
+            if (playerState == null) {
                 state.controllerState.visibility = ControllerVisibility.Invisible
             } else if (controller != null) {
                 state.controllerState.maybeShow()

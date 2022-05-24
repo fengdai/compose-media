@@ -51,7 +51,7 @@ fun SimpleController(
                     modifier = Modifier
                         .size(52.dp)
                         .clickable {
-                            state.maybeEnterPlayerScope {
+                            state.playerState?.run {
                                 hideEffectReset++
                                 if (controllerState.showPause) player.pause()
                                 else {
