@@ -17,6 +17,9 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.PlaybackException
@@ -343,7 +346,7 @@ private fun Modifier.resize(
     ResizeMode.Fill -> fillMaxSize()
     ResizeMode.FixedWidth -> fixedWidth(aspectRatio)
     ResizeMode.FixedHeight -> fixedHeight(aspectRatio)
-    ResizeMode.Zoom -> if (aspectRatio >= 1) fixedHeight(aspectRatio) else fixedWidth(aspectRatio)
+    ResizeMode.Zoom -> zoom(aspectRatio)
 }
 
 private fun Modifier.fixedWidth(
@@ -358,6 +361,34 @@ private fun Modifier.fixedHeight(
 ) = clipToBounds()
     .fillMaxHeight()
     .wrapContentWidth(unbounded = true)
+    .aspectRatio(aspectRatio)
+
+private fun Modifier.zoom(
+    aspectRatio: Float
+) = clipToBounds()
+    .layout { measurable, constraints ->
+        val maxWidth = constraints.maxWidth
+        val maxHeight = constraints.maxHeight
+        if (aspectRatio > maxWidth.toFloat() / maxHeight) {
+            // wrap width unbounded
+            val modifiedConstraints = constraints.copy(maxWidth = Constraints.Infinity)
+            val placeable = measurable.measure(modifiedConstraints)
+            layout(constraints.maxWidth, placeable.height) {
+                val offsetX = Alignment.CenterHorizontally
+                    .align(0, constraints.maxWidth - placeable.width, layoutDirection)
+                placeable.place(IntOffset(offsetX, 0))
+            }
+        } else {
+            // wrap height unbounded
+            val modifiedConstraints = constraints.copy(maxHeight = Constraints.Infinity)
+            val placeable = measurable.measure(modifiedConstraints)
+            layout(placeable.width, constraints.maxHeight) {
+                val offsetY = Alignment.CenterVertically
+                    .align(0, constraints.maxHeight - placeable.height)
+                placeable.place(IntOffset(0, offsetY))
+            }
+        }
+    }
     .aspectRatio(aspectRatio)
 
 @Composable
