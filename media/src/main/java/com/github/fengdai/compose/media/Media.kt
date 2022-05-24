@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -347,13 +348,15 @@ private fun Modifier.resize(
 
 private fun Modifier.fixedWidth(
     aspectRatio: Float
-) = fillMaxWidth()
+) = clipToBounds()
+    .fillMaxWidth()
     .wrapContentHeight(unbounded = true)
     .aspectRatio(aspectRatio)
 
 private fun Modifier.fixedHeight(
     aspectRatio: Float
-) = fillMaxHeight()
+) = clipToBounds()
+    .fillMaxHeight()
     .wrapContentWidth(unbounded = true)
     .aspectRatio(aspectRatio)
 
