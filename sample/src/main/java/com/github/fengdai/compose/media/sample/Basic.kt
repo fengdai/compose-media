@@ -83,7 +83,7 @@ fun BasicContent(
     val player by rememberManagedExoPlayer { context ->
         setMediaSourceFactory(ProgressiveMediaSource.Factory(DefaultDataSource.Factory(context)))
     }
-    player?.playWhenReady = playWhenReady
+    SideEffect { player?.playWhenReady = playWhenReady }
 
     val mediaItem = remember(url) { MediaItem.fromUri(url) }
     LaunchedEffect(mediaItem, player) {

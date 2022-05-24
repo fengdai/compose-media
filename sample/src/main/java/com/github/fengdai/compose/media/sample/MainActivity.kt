@@ -34,6 +34,9 @@ class MainActivity : ComponentActivity() {
                     composable("list") {
                         InsideList(navController)
                     }
+                    composable("fullscreen-toggle") {
+                        FullscreenToggle(navController)
+                    }
                     composable("exo-styled-player-view") {
                         StyledPlayerViewSample()
                     }

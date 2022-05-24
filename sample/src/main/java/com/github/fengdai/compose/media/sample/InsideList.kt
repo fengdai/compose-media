@@ -50,7 +50,7 @@ fun InsideListContent(
     val player by rememberManagedExoPlayer { context ->
         setMediaSourceFactory(ProgressiveMediaSource.Factory(DefaultDataSource.Factory(context)))
     }
-    player?.playWhenReady = true
+    SideEffect { player?.playWhenReady = true }
 
     val listState = rememberLazyListState()
     val focusedIndex by remember(listState) {

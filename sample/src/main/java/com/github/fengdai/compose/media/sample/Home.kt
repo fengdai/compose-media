@@ -19,6 +19,7 @@ import androidx.navigation.NavController
 private val Samples = listOf(
     "basic" to "Basic",
     "list" to "Inside List",
+    "fullscreen-toggle" to "Fullscreen Toggle",
 //    "exo-styled-player-view" to "Exo StyledPlayerView",
 )
 
