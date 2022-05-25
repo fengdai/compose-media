@@ -29,6 +29,16 @@ android {
         kotlinCompilerExtensionVersion = libs.versions.compose.get()
     }
 
+    kotlinOptions {
+        jvmTarget = "1.8"
+        freeCompilerArgs += listOf(
+            "-P",
+            "plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=$buildDir/compose",
+            "-P",
+            "plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=$buildDir/compose"
+        )
+    }
+
     publishing {
         singleVariant("release") {
             withJavadocJar()
