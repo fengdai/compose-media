@@ -8,7 +8,8 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionParameters
 import com.google.android.exoplayer2.video.VideoSize
 
 /**
- * Creates a [PlayerState] that is remembered across compositions.
+ * Create a [PlayerState] instance. Remember it if [player] is equal to the previous composition,
+ * otherwise produce and remember a new [PlayerState].
  */
 @Composable
 fun rememberPlayerState(player: Player): PlayerState {

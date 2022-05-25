@@ -4,9 +4,16 @@ import androidx.compose.runtime.*
 import com.google.android.exoplayer2.Player
 
 /**
- * Creates a [MediaState] that is remembered across compositions.
- *
- * Changes to [player] will result in the [MediaState.playerState] being updated.
+ * Create and [remember] a [MediaState] instance.
+ */
+@Composable
+fun rememberMediaState(): MediaState {
+    return remember { MediaState() }
+}
+
+/**
+ * Create and [remember] a [MediaState] instance. Update its [playerState][MediaState.playerState]
+ * to reflect the [player] changes on each recomposition of the [rememberUpdatedMediaState] call.
  */
 @Composable
 fun rememberUpdatedMediaState(
@@ -21,19 +28,18 @@ fun rememberUpdatedMediaState(
  * A state object that can be hoisted to control and observe changes for [Media].
  */
 @Stable
-class MediaState internal constructor() {
+class MediaState {
     /**
      * The state of the [Media]'s player. Null means it doesn't have a player associated with it.
      */
     var playerState: PlayerState? by mutableStateOf(null)
-        internal set
 
     /**
      * The state of the [Media]'s controller.
      */
     val controllerState: ControllerState = ControllerState()
 
-    inner class ControllerState {
+    inner class ControllerState internal constructor() {
         /**
          * Whether the playback controls are hidden by touch. Default is true.
          */
