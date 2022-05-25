@@ -13,9 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.Constraints
@@ -114,7 +114,8 @@ enum class ShowBuffering {
  * If false is provided, the currently displayed video frame or media artwork will be hidden as soon
  * as the player is reset.
  * @param useArtwork Whether artwork is used if available in audio streams.
- * @param defaultArtwork Default artwork to use if no artwork available in audio streams.
+ * @param defaultArtworkPainter The [Painter], which will be used to draw default artwork if no
+ * artwork available in audio streams.
  * @param subtitles The subtitles. Default is null.
  * @param showBuffering Determines when the buffering indicator is shown.
  * @param buffering The buffering indicator, typically a circular progress indicator. Default is
@@ -134,7 +135,7 @@ fun Media(
     shutterColor: Color = Color.Black,
     keepContentOnPlayerReset: Boolean = false,
     useArtwork: Boolean = true,
-    defaultArtwork: ImageBitmap? = null,
+    defaultArtworkPainter: Painter? = null,
     subtitles: @Composable ((List<Cue>) -> Unit)? = null, // TODO
     showBuffering: ShowBuffering = ShowBuffering.Never,
     buffering: @Composable (() -> Unit)? = null,
@@ -265,18 +266,18 @@ fun Media(
             }
         }
         if (!hideArtwork) {
-            val artworkData = playerState?.mediaMetadata?.artworkData
-            val metadataArtwork by remember(artworkData) {
+            val metadataArtworkData = playerState?.mediaMetadata?.artworkData
+            val metadataArtworkPainter by remember(metadataArtworkData) {
                 lazy {
-                    artworkData?.run {
-                        BitmapFactory.decodeByteArray(this, 0, size).asImageBitmap()
+                    metadataArtworkData?.run {
+                        BitmapPainter(BitmapFactory.decodeByteArray(this, 0, size).asImageBitmap())
                     }
                 }
             }
-            val artwork: ImageBitmap? = metadataArtwork ?: defaultArtwork
-            if (artwork != null) {
+            val artworkPainter: Painter? = metadataArtworkPainter ?: defaultArtworkPainter
+            if (artworkPainter != null) {
                 Image(
-                    painter = BitmapPainter(artwork),
+                    painter = artworkPainter,
                     contentDescription = "",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = when (resizeMode) {
@@ -288,8 +289,7 @@ fun Media(
                     }
                 )
                 currentAspectRatioSetter(
-                    if (artwork.height == 0) 0f
-                    else artwork.width.toFloat() / artwork.height
+                    artworkPainter.intrinsicSize.run { if (height == 0f) 0f else width / height }
                 )
             }
         }
