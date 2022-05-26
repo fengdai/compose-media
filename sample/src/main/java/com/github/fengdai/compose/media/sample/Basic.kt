@@ -1,5 +1,6 @@
 package com.github.fengdai.compose.media.sample
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,6 +14,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -95,7 +97,7 @@ fun BasicContent(
 
     val state = rememberUpdatedMediaState(player = player.takeIf { setPlayer })
 
-    Column(modifier = modifier) {
+    val media = @Composable {
         Media(
             state,
             modifier = Modifier
@@ -137,7 +139,8 @@ fun BasicContent(
                 }
             }
         )
-
+    }
+    val options = @Composable {
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             Option("Url", Urls, url) { url = it }
             Option("Surface Type", SurfaceTypes, surfaceType) { surfaceType = it }
@@ -163,5 +166,14 @@ fun BasicContent(
                 BooleanOption("Auto Show", autoShow, enabled) { autoShow = it }
             }
         }
+    }
+
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    if (!isLandscape) Column(modifier) {
+        media()
+        options()
+    } else Row(modifier) {
+        media()
+        options()
     }
 }
