@@ -85,18 +85,21 @@ fun BasicContent(
     val player by rememberManagedExoPlayer { context ->
         setMediaSourceFactory(ProgressiveMediaSource.Factory(DefaultDataSource.Factory(context)))
     }
-    SideEffect { player?.playWhenReady = playWhenReady }
+    DisposableEffect(player, playWhenReady) {
+        player?.playWhenReady = playWhenReady
+        onDispose {}
+    }
 
     val mediaItem = remember(url) { MediaItem.fromUri(url) }
-    LaunchedEffect(mediaItem, player) {
+    DisposableEffect(mediaItem, player) {
         player?.run {
             setMediaItem(mediaItem)
             prepare()
         }
+        onDispose {}
     }
 
-    val state = rememberUpdatedMediaState(player = player.takeIf { setPlayer })
-
+    val state = rememberMediaState()
     val media = @Composable {
         Media(
             state,
@@ -127,15 +130,11 @@ fun BasicContent(
             },
             controller = when (controllerType) {
                 ControllerType.None -> null
-                ControllerType.Simple -> {
-                    @Composable { state ->
-                        SimpleController(state, Modifier.fillMaxSize())
-                    }
+                ControllerType.Simple -> @Composable { state ->
+                    SimpleController(state, Modifier.fillMaxSize())
                 }
-                ControllerType.StyledPlayerControlView -> {
-                    @Composable { state ->
-                        StyledPlayerControlViewController(state, Modifier.fillMaxSize())
-                    }
+                ControllerType.StyledPlayerControlView -> @Composable { state ->
+                    StyledPlayerControlViewController(state, Modifier.fillMaxSize())
                 }
             }
         )
@@ -168,11 +167,16 @@ fun BasicContent(
         }
     }
 
+    val playerToSet = player.takeIf { setPlayer }
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     if (!isLandscape) Column(modifier) {
+        // TODO  Workaround for RememberObserver issue.
+        // https://kotlinlang.slack.com/archives/CJLTWPH7S/p1653543177516939
+        state.playerState = playerToSet?.run { rememberPlayerState(player = this) }
         media()
         options()
     } else Row(modifier) {
+        state.playerState = playerToSet?.run { rememberPlayerState(player = this) }
         media()
         options()
     }
