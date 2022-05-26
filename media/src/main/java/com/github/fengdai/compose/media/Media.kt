@@ -327,15 +327,6 @@ fun Media(
             }
             onDispose {}
         }
-        var controllerChanged by remember(controller as? Any) { mutableStateOf(true) }
-        if (controllerChanged) {
-            // reset controllerState if controller changed
-            if (!state.controllerState.maybeShow()) {
-                state.controllerState.visibility = ControllerVisibility.Invisible
-            }
-            @Suppress("UNUSED_VALUE")
-            controllerChanged = false
-        }
         if (controller != null) controller(state)
     }
 }
