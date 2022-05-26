@@ -270,20 +270,30 @@ internal class PlayerStateImpl(
             this@PlayerStateImpl.cues = cues
         }
     }
+    private var remembered = false
 
     init {
         // Add listener as soon as possible
-        player.addListener(listener)
+        onRemembered()
     }
 
     override fun onRemembered() {
+        if (!remembered) {
+            player.addListener(listener)
+            remembered = true
+        }
     }
 
     override fun onAbandoned() {
-        player.removeListener(listener)
+        clear()
     }
 
     override fun onForgotten() {
+        clear()
+    }
+
+    private fun clear() {
         player.removeListener(listener)
+        remembered = false
     }
 }
