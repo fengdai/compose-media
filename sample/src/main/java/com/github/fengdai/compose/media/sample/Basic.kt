@@ -82,6 +82,7 @@ fun BasicContent(
 
     var controllerType by rememberSaveable { mutableStateOf(ControllerType.Simple) }
 
+    var rememberedMediaItemIdAndPosition: Pair<String, Long>? by remember { mutableStateOf(null) }
     val player by rememberManagedExoPlayer { context ->
         setMediaSourceFactory(ProgressiveMediaSource.Factory(DefaultDataSource.Factory(context)))
     }
@@ -90,10 +91,13 @@ fun BasicContent(
         onDispose {}
     }
 
-    val mediaItem = remember(url) { MediaItem.fromUri(url) }
+    val mediaItem = remember(url) { MediaItem.Builder().setMediaId(url).setUri(url).build() }
     DisposableEffect(mediaItem, player) {
         player?.run {
             setMediaItem(mediaItem)
+            rememberedMediaItemIdAndPosition?.let { (id, position) ->
+                if (id == mediaItem.mediaId) seekTo(position)
+            }?.also { rememberedMediaItemIdAndPosition = null }
             prepare()
         }
         onDispose {}

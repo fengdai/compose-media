@@ -16,7 +16,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
-import com.github.fengdai.compose.media.*
+import com.github.fengdai.compose.media.Media
+import com.github.fengdai.compose.media.MediaState
+import com.github.fengdai.compose.media.rememberMediaState
+import com.github.fengdai.compose.media.rememberPlayerState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
@@ -38,7 +41,10 @@ fun FullscreenToggle(navController: NavHostController) {
     val player by rememberManagedExoPlayer { context ->
         setMediaSourceFactory(ProgressiveMediaSource.Factory(DefaultDataSource.Factory(context)))
     }
-    SideEffect { player?.playWhenReady = true }
+    DisposableEffect(player) {
+        player?.playWhenReady = true
+        onDispose {}
+    }
 
     val mediaItem = remember { MediaItem.fromUri(Urls[0]) }
     LaunchedEffect(mediaItem, player) {
