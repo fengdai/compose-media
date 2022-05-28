@@ -17,8 +17,6 @@ import androidx.navigation.NavHostController
 import com.github.fengdai.compose.media.Media
 import com.github.fengdai.compose.media.rememberUpdatedMediaState
 import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DefaultDataSource
 
 @Composable
 fun InsideList(navController: NavHostController) {
@@ -46,14 +44,8 @@ fun InsideListContent(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues
 ) {
-    val mediaItems = remember { Urls.map { MediaItem.fromUri(it) } }
-    val player by rememberManagedExoPlayer { context ->
-        setMediaSourceFactory(ProgressiveMediaSource.Factory(DefaultDataSource.Factory(context)))
-    }
-    DisposableEffect(player) {
-        player?.playWhenReady = true
-        onDispose {}
-    }
+    val mediaItems = remember { Urls.map { MediaItem.Builder().setMediaId(it).setUri(it).build() } }
+    val player by rememberManagedExoPlayer()
 
     val listState = rememberLazyListState()
     val focusedIndex by remember(listState) {

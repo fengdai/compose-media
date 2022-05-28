@@ -20,8 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.github.fengdai.compose.media.*
 import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DefaultDataSource
 
 val SurfaceTypes = SurfaceType.values().toList()
 val ResizeModes = ResizeMode.values().toList()
@@ -83,9 +81,7 @@ fun BasicContent(
     var controllerType by rememberSaveable { mutableStateOf(ControllerType.Simple) }
 
     var rememberedMediaItemIdAndPosition: Pair<String, Long>? by remember { mutableStateOf(null) }
-    val player by rememberManagedExoPlayer { context ->
-        setMediaSourceFactory(ProgressiveMediaSource.Factory(DefaultDataSource.Factory(context)))
-    }
+    val player by rememberManagedExoPlayer()
     DisposableEffect(player, playWhenReady) {
         player?.playWhenReady = playWhenReady
         onDispose {}

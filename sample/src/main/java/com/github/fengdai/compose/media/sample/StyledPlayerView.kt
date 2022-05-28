@@ -14,28 +14,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.navigation.NavController
 import com.github.fengdai.compose.media.SurfaceType
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.ui.StyledPlayerView
-import com.google.android.exoplayer2.upstream.DefaultDataSource
 
 @Composable
 fun StyledPlayerViewSample() {
     var setPlayer by rememberSaveable { mutableStateOf(true) }
     var url by rememberSaveable { mutableStateOf(Urls[0]) }
 
-    val player by rememberManagedExoPlayer { context ->
-        setMediaSourceFactory(ProgressiveMediaSource.Factory(DefaultDataSource.Factory(context)))
-    }
+    val player by rememberManagedExoPlayer()
     val mediaItem = remember(url) { MediaItem.fromUri(url) }
     LaunchedEffect(mediaItem, player) {
         player?.run {
             setMediaItem(mediaItem)
             prepare()
-            play()
         }
     }
     Column(

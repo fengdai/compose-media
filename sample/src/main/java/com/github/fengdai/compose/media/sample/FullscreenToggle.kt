@@ -22,8 +22,6 @@ import com.github.fengdai.compose.media.ShowBuffering
 import com.github.fengdai.compose.media.rememberUpdatedMediaState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DefaultDataSource
 
 @Composable
 fun FullscreenToggle(navController: NavHostController) {
@@ -36,14 +34,7 @@ fun FullscreenToggle(navController: NavHostController) {
         systemUiController.isNavigationBarVisible = !isLandscape
     }
 
-    val player by rememberManagedExoPlayer { context ->
-        setMediaSourceFactory(ProgressiveMediaSource.Factory(DefaultDataSource.Factory(context)))
-    }
-    DisposableEffect(player) {
-        player?.playWhenReady = true
-        onDispose {}
-    }
-
+    val player by rememberManagedExoPlayer()
     val mediaItem = remember { MediaItem.fromUri(Urls[0]) }
     LaunchedEffect(mediaItem, player) {
         player?.run {
