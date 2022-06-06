@@ -43,4 +43,6 @@ dependencies {
     implementation(libs.exoplayer.core)
     implementation(libs.exoplayer.ui)
     implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.video)
 }
