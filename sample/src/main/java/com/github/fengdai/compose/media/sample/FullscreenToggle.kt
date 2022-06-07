@@ -1,9 +1,9 @@
 package com.github.fengdai.compose.media.sample
 
-import android.content.pm.ActivityInfo
+import android.annotation.SuppressLint
+import android.content.pm.ActivityInfo.*
 import android.content.res.Configuration
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.OnBackPressedDispatcher
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.github.fengdai.compose.media.Media
 import com.github.fengdai.compose.media.MediaState
+import com.github.fengdai.compose.media.ShowBuffering
 import com.github.fengdai.compose.media.rememberUpdatedMediaState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.exoplayer2.MediaItem
@@ -27,8 +28,6 @@ import com.google.android.exoplayer2.upstream.DefaultDataSource
 @Composable
 fun FullscreenToggle(navController: NavHostController) {
     val configuration = LocalConfiguration.current
-    val activity = LocalContext.current.findActivity()!!
-
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val systemUiController = rememberSystemUiController()
@@ -53,39 +52,21 @@ fun FullscreenToggle(navController: NavHostController) {
         }
     }
 
-    val state = rememberUpdatedMediaState(player)
-    if (!isLandscape) {
-        NormalContent(
-            state,
-            onBackPressed = { navController.popBackStack() },
-            enterFullscreen = {
-                activity.requestedOrientation =
-                    ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
-            }
-        )
-    } else {
-        FullscreenContent(
-            state,
-            activity.onBackPressedDispatcher,
-            exitFullScreen = {
-                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER
-            }
-        )
+    val mediaState = rememberUpdatedMediaState(player)
+    val mediaContent = remember {
+        // TODO movableContentOf here doesn't avoid Media from recreating its surface view when
+        // screen rotation changed. Seems like a bug of Compose.
+        // see: https://kotlinlang.slack.com/archives/CJLTWPH7S/p1654734644676989
+        movableContentOf { isLandscape: Boolean, modifier: Modifier ->
+            MediaContent(mediaState, isLandscape, modifier)
+        }
     }
-}
-
-@Composable
-private fun NormalContent(
-    state: MediaState,
-    onBackPressed: () -> Unit,
-    enterFullscreen: () -> Unit
-) {
     Scaffold(
         topBar = {
             SmallTopAppBar(
                 title = { Text("Fullscreen Toggle") },
                 navigationIcon = {
-                    IconButton(onClick = onBackPressed) {
+                    IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Filled.ArrowBack, null)
                     }
                 }
@@ -95,58 +76,77 @@ private fun NormalContent(
             .fillMaxSize()
             .systemBarsPadding(),
     ) { padding ->
-        Box(
-            Modifier
-                .padding(padding)
-                .fillMaxWidth()
-                .aspectRatio(16f / 9f)
-        ) {
-            Media(
-                state,
-                Modifier.fillMaxSize()
+        if (!isLandscape) {
+            mediaContent(
+                false,
+                Modifier
+                    .padding(padding)
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 9f)
             )
-            Button(
-                modifier = Modifier.align(Alignment.BottomEnd),
-                onClick = enterFullscreen
-            ) {
-                Text(text = "Enter Fullscreen")
-            }
         }
+    }
+    if (isLandscape) {
+        mediaContent(
+            true,
+            Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        )
     }
 }
 
 @Composable
-private fun FullscreenContent(
-    state: MediaState,
-    onBackPressedDispatcher: OnBackPressedDispatcher,
-    exitFullScreen: () -> Unit,
+private fun MediaContent(
+    mediaState: MediaState,
+    isLandscape: Boolean,
+    modifier: Modifier = Modifier
 ) {
-    val currentExitFullScreen by rememberUpdatedState(newValue = exitFullScreen)
-    DisposableEffect(onBackPressedDispatcher) {
-        val callback = object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                currentExitFullScreen()
-            }
-        }
-        onBackPressedDispatcher.addCallback(callback)
-        onDispose {
-            callback.remove()
-        }
+    val activity = LocalContext.current.findActivity()!!
+    val enterFullscreen = { activity.requestedOrientation = SCREEN_ORIENTATION_USER_LANDSCAPE }
+    val exitFullscreen = {
+        @SuppressLint("SourceLockedOrientationActivity")
+        // Will reset to SCREEN_ORIENTATION_USER later
+        activity.requestedOrientation = SCREEN_ORIENTATION_USER_PORTRAIT
     }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-    ) {
+    Box(modifier) {
         Media(
-            state,
-            modifier = Modifier.fillMaxSize()
+            mediaState,
+            modifier = Modifier.fillMaxSize(),
+            showBuffering = ShowBuffering.Always,
+            buffering = {
+                Box(Modifier.fillMaxSize(), Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            },
         )
         Button(
             modifier = Modifier.align(Alignment.BottomEnd),
-            onClick = exitFullScreen
+            onClick = if (isLandscape) exitFullscreen else enterFullscreen
         ) {
-            Text(text = "Exit Fullscreen")
+            Text(text = if (isLandscape) "Exit Fullscreen" else "Enter Fullscreen")
+        }
+    }
+    val onBackPressedCallback = remember {
+        object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                exitFullscreen()
+            }
+        }
+    }
+    val onBackPressedDispatcher = activity.onBackPressedDispatcher
+    DisposableEffect(onBackPressedDispatcher) {
+        onBackPressedDispatcher.addCallback(onBackPressedCallback)
+        onDispose { onBackPressedCallback.remove() }
+    }
+    SideEffect {
+        onBackPressedCallback.isEnabled = isLandscape
+        if (isLandscape) {
+            if (activity.requestedOrientation == SCREEN_ORIENTATION_USER) {
+                activity.requestedOrientation = SCREEN_ORIENTATION_USER_LANDSCAPE
+            }
+        } else {
+            activity.requestedOrientation = SCREEN_ORIENTATION_USER
         }
     }
 }

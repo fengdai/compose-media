@@ -104,79 +104,73 @@ fun BasicContent(
     }
 
     val state = rememberUpdatedMediaState(player = player.takeIf { setPlayer })
-    val media = @Composable {
-        Media(
-            state,
-            modifier = Modifier
-                .aspectRatio(16f / 9f)
-                .background(Color.Black),
-            surfaceType = surfaceType,
-            resizeMode = resizeMode,
-            keepContentOnPlayerReset = keepContentOnPlayerReset,
-            useArtwork = useArtwork,
-            showBuffering = showBuffering,
-            buffering = {
-                Box(Modifier.fillMaxSize(), Alignment.Center) {
-                    CircularProgressIndicator()
+    val content = remember {
+        movableContentOf {
+            Media(
+                state,
+                modifier = Modifier
+                    .aspectRatio(16f / 9f)
+                    .background(Color.Black),
+                surfaceType = surfaceType,
+                resizeMode = resizeMode,
+                keepContentOnPlayerReset = keepContentOnPlayerReset,
+                useArtwork = useArtwork,
+                showBuffering = showBuffering,
+                buffering = {
+                    Box(Modifier.fillMaxSize(), Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                },
+                errorMessage = { error ->
+                    Box(Modifier.fillMaxSize(), Alignment.Center) {
+                        Text(
+                            error.message ?: "",
+                            modifier = Modifier
+                                .background(Color(0x80808080), RoundedCornerShape(16.dp))
+                                .padding(horizontal = 12.dp, vertical = 4.dp),
+                            color = Color.White,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                },
+                controller = when (controllerType) {
+                    ControllerType.None -> null
+                    ControllerType.Simple -> @Composable { state ->
+                        SimpleController(state, Modifier.fillMaxSize())
+                    }
+                    ControllerType.StyledPlayerControlView -> @Composable { state ->
+                        StyledPlayerControlViewController(state, Modifier.fillMaxSize())
+                    }
                 }
-            },
-            errorMessage = { error ->
-                Box(Modifier.fillMaxSize(), Alignment.Center) {
-                    Text(
-                        error.message ?: "",
-                        modifier = Modifier
-                            .background(Color(0x80808080), RoundedCornerShape(16.dp))
-                            .padding(horizontal = 12.dp, vertical = 4.dp),
-                        color = Color.White,
-                        textAlign = TextAlign.Center
-                    )
+            )
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                Option("Url", Urls, url) { url = it }
+                Option("Surface Type", SurfaceTypes, surfaceType) { surfaceType = it }
+                Option("Resize Mode", ResizeModes, resizeMode) { resizeMode = it }
+                BooleanOption(
+                    "Keep Content On Player Reset",
+                    keepContentOnPlayerReset
+                ) { keepContentOnPlayerReset = it }
+                BooleanOption("Use Artwork", useArtwork) { useArtwork = it }
+                Option("Show Buffering", ShowBufferingValues, showBuffering) { showBuffering = it }
+                BooleanOption("Set Player", setPlayer) { setPlayer = it }
+                Column(Modifier.padding(start = 18.dp)) {
+                    BooleanOption("Play When Ready", playWhenReady) { playWhenReady = it }
                 }
-            },
-            controller = when (controllerType) {
-                ControllerType.None -> null
-                ControllerType.Simple -> @Composable { state ->
-                    SimpleController(state, Modifier.fillMaxSize())
+                Option("Controller", ControllerTypes, controllerType) { controllerType = it }
+                Column(Modifier.padding(start = 18.dp)) {
+                    val enabled = controllerType != ControllerType.None
+                    var hideOnTouch by rememberSaveable { mutableStateOf(true) }
+                    var autoShow by rememberSaveable { mutableStateOf(true) }
+                    state.controllerState.hideOnTouch = hideOnTouch
+                    state.controllerState.autoShow = autoShow
+                    BooleanOption("Hide On Touch", hideOnTouch, enabled) { hideOnTouch = it }
+                    BooleanOption("Auto Show", autoShow, enabled) { autoShow = it }
                 }
-                ControllerType.StyledPlayerControlView -> @Composable { state ->
-                    StyledPlayerControlViewController(state, Modifier.fillMaxSize())
-                }
-            }
-        )
-    }
-    val options = @Composable {
-        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-            Option("Url", Urls, url) { url = it }
-            Option("Surface Type", SurfaceTypes, surfaceType) { surfaceType = it }
-            Option("Resize Mode", ResizeModes, resizeMode) { resizeMode = it }
-            BooleanOption(
-                "Keep Content On Player Reset",
-                keepContentOnPlayerReset
-            ) { keepContentOnPlayerReset = it }
-            BooleanOption("Use Artwork", useArtwork) { useArtwork = it }
-            Option("Show Buffering", ShowBufferingValues, showBuffering) { showBuffering = it }
-            BooleanOption("Set Player", setPlayer) { setPlayer = it }
-            Column(Modifier.padding(start = 18.dp)) {
-                BooleanOption("Play When Ready", playWhenReady) { playWhenReady = it }
-            }
-            Option("Controller", ControllerTypes, controllerType) { controllerType = it }
-            Column(Modifier.padding(start = 18.dp)) {
-                val enabled = controllerType != ControllerType.None
-                var hideOnTouch by rememberSaveable { mutableStateOf(true) }
-                var autoShow by rememberSaveable { mutableStateOf(true) }
-                state.controllerState.hideOnTouch = hideOnTouch
-                state.controllerState.autoShow = autoShow
-                BooleanOption("Hide On Touch", hideOnTouch, enabled) { hideOnTouch = it }
-                BooleanOption("Auto Show", autoShow, enabled) { autoShow = it }
             }
         }
     }
 
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    if (!isLandscape) Column(modifier) {
-        media()
-        options()
-    } else Row(modifier) {
-        media()
-        options()
-    }
+    if (!isLandscape) Column(modifier) { content() } else Row(modifier) { content() }
 }
