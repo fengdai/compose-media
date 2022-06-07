@@ -103,7 +103,7 @@ fun BasicContent(
         onDispose {}
     }
 
-    val state = rememberMediaState()
+    val state = rememberUpdatedMediaState(player = player.takeIf { setPlayer })
     val media = @Composable {
         Media(
             state,
@@ -171,16 +171,11 @@ fun BasicContent(
         }
     }
 
-    val playerToSet = player.takeIf { setPlayer }
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     if (!isLandscape) Column(modifier) {
-        // TODO  Workaround for RememberObserver issue.
-        // https://kotlinlang.slack.com/archives/CJLTWPH7S/p1653543177516939
-        state.playerState = playerToSet?.run { rememberPlayerState(player = this) }
         media()
         options()
     } else Row(modifier) {
-        state.playerState = playerToSet?.run { rememberPlayerState(player = this) }
         media()
         options()
     }

@@ -161,7 +161,7 @@ fun Media(
     // shutter
     var closeShutter by remember { mutableStateOf(true) }
     val playerState = state.playerState
-    key(playerState) {
+    key(playerState?.player) {
         var isNewPlayer by remember { mutableStateOf(true) }
         val tracksInfo = playerState?.tracksInfo
         DisposableEffect(tracksInfo, keepContentOnPlayerReset) {
@@ -181,7 +181,7 @@ fun Media(
     }
 
     if (playerState != null) {
-        DisposableEffect(playerState) {
+        DisposableEffect(playerState.player) {
             val listener = object : Player.Listener {
                 override fun onVideoSizeChanged(videoSize: VideoSize) {
                     var videoAspectRatio = if (videoSize.height == 0) 0f
@@ -255,7 +255,7 @@ fun Media(
         )
 
         // artwork in audio stream
-        val hideArtwork by remember(playerState, useArtwork, keepContentOnPlayerReset) {
+        val hideArtwork by remember(playerState?.player, useArtwork, keepContentOnPlayerReset) {
             derivedStateOf {
                 !useArtwork
                         ||
@@ -299,7 +299,7 @@ fun Media(
         subtitles?.invoke(cues)
 
         // buffering
-        val isBufferingShowing by remember(playerState, showBuffering) {
+        val isBufferingShowing by remember(playerState?.player, showBuffering) {
             derivedStateOf {
                 playerState?.run {
                     playbackState == Player.STATE_BUFFERING
@@ -319,7 +319,7 @@ fun Media(
         overlay?.invoke()
 
         // controller
-        DisposableEffect(playerState) {
+        DisposableEffect(playerState?.player) {
             if (playerState == null) {
                 state.controllerState.visibility = ControllerVisibility.Invisible
             } else if (controller != null) {

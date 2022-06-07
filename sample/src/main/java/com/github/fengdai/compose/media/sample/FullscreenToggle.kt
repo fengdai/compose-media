@@ -18,8 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.github.fengdai.compose.media.Media
 import com.github.fengdai.compose.media.MediaState
-import com.github.fengdai.compose.media.rememberMediaState
-import com.github.fengdai.compose.media.rememberPlayerState
+import com.github.fengdai.compose.media.rememberUpdatedMediaState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
@@ -54,11 +53,8 @@ fun FullscreenToggle(navController: NavHostController) {
         }
     }
 
-    val state = rememberMediaState()
+    val state = rememberUpdatedMediaState(player)
     if (!isLandscape) {
-        // TODO  Workaround for RememberObserver issue.
-        // https://kotlinlang.slack.com/archives/CJLTWPH7S/p1653543177516939
-        state.playerState = player?.run { rememberPlayerState(player = this) }
         NormalContent(
             state,
             onBackPressed = { navController.popBackStack() },
@@ -68,7 +64,6 @@ fun FullscreenToggle(navController: NavHostController) {
             }
         )
     } else {
-        state.playerState = player?.run { rememberPlayerState(player = this) }
         FullscreenContent(
             state,
             activity.onBackPressedDispatcher,
