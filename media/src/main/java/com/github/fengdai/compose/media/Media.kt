@@ -148,11 +148,11 @@ fun Media(
     }
 
     var contentAspectRatio by remember { mutableStateOf(0f) }
-    val currentAspectRatioSetter: (Float) -> Unit = { viewAspectRatio ->
-        val aspectDeformation: Float = viewAspectRatio / contentAspectRatio - 1f
+    val contentAspectRatioSetter: (Float) -> Unit = { targetContentAspectRatio ->
+        val aspectDeformation: Float = targetContentAspectRatio / contentAspectRatio - 1f
         if (aspectDeformation.absoluteValue > 0.01f) {
             // Not within the allowed tolerance, populate the new viewAspectRatio.
-            contentAspectRatio = viewAspectRatio
+            contentAspectRatio = targetContentAspectRatio
         }
     }
 
@@ -180,6 +180,8 @@ fun Media(
         isNewPlayer = false
     }
 
+    var lastArtworkPainter by remember { mutableStateOf<Painter?>(null) }
+
     if (playerState != null) {
         DisposableEffect(playerState.player) {
             val listener = object : Player.Listener {
@@ -200,11 +202,12 @@ fun Media(
                         textureViewRotation = videoSize.unappliedRotationDegrees
                     }
 
-                    currentAspectRatioSetter(videoAspectRatio)
+                    contentAspectRatioSetter(videoAspectRatio)
                 }
 
                 override fun onRenderedFirstFrame() {
                     closeShutter = false
+                    lastArtworkPainter = null
                 }
 
                 override fun onEvents(player: Player, events: Player.Events) {
@@ -255,43 +258,48 @@ fun Media(
         )
 
         // artwork in audio stream
-        val hideArtwork by remember(playerState?.player, useArtwork, keepContentOnPlayerReset) {
+        val hideArtwork by remember(playerState?.player, useArtwork) {
             derivedStateOf {
                 !useArtwork
                         ||
                         (playerState?.tracksInfo?.run {
-                            (trackGroupInfos.isEmpty() && !keepContentOnPlayerReset)
-                                    || isTypeSelected(C.TRACK_TYPE_VIDEO)
+                            trackGroupInfos.isEmpty() || isTypeSelected(C.TRACK_TYPE_VIDEO)
                         } ?: true)
             }
         }
-        if (!hideArtwork) {
-            val metadataArtworkData = playerState?.mediaMetadata?.artworkData
-            val metadataArtworkPainter by remember(metadataArtworkData) {
-                lazy {
-                    metadataArtworkData?.run {
-                        BitmapPainter(BitmapFactory.decodeByteArray(this, 0, size).asImageBitmap())
+        val artworkPainter: Painter? = when {
+            !hideArtwork -> {
+                val metadataArtworkData = playerState?.mediaMetadata?.artworkData
+                val metadataArtworkPainter by remember(metadataArtworkData) {
+                    lazy {
+                        metadataArtworkData?.run {
+                            BitmapPainter(
+                                BitmapFactory.decodeByteArray(this, 0, size).asImageBitmap()
+                            )
+                        }
                     }
                 }
+                (metadataArtworkPainter ?: defaultArtworkPainter).also { lastArtworkPainter = it }
             }
-            val artworkPainter: Painter? = metadataArtworkPainter ?: defaultArtworkPainter
-            if (artworkPainter != null) {
-                Image(
-                    painter = artworkPainter,
-                    contentDescription = "",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = when (resizeMode) {
-                        ResizeMode.Fit -> ContentScale.Fit
-                        ResizeMode.FixedWidth -> ContentScale.FillWidth
-                        ResizeMode.FixedHeight -> ContentScale.FillHeight
-                        ResizeMode.Fill -> ContentScale.FillBounds
-                        ResizeMode.Zoom -> ContentScale.Crop
-                    }
-                )
-                currentAspectRatioSetter(
-                    artworkPainter.intrinsicSize.run { if (height == 0f) 0f else width / height }
-                )
-            }
+            keepContentOnPlayerReset -> lastArtworkPainter
+            else -> null
+        }
+        if (artworkPainter != null) {
+            Image(
+                painter = artworkPainter,
+                contentDescription = "",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = when (resizeMode) {
+                    ResizeMode.Fit -> ContentScale.Fit
+                    ResizeMode.FixedWidth -> ContentScale.FillWidth
+                    ResizeMode.FixedHeight -> ContentScale.FillHeight
+                    ResizeMode.Fill -> ContentScale.FillBounds
+                    ResizeMode.Zoom -> ContentScale.Crop
+                }
+            )
+            contentAspectRatioSetter(
+                artworkPainter.intrinsicSize.run { if (height == 0f) 0f else width / height }
+            )
         }
 
         // subtitles
