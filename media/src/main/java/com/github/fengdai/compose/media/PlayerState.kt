@@ -8,12 +8,15 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionParameters
 import com.google.android.exoplayer2.video.VideoSize
 
 /**
- * Create a [PlayerState] instance. Remember it if [player] is equal to the previous composition,
- * otherwise produce and remember a new [PlayerState].
+ * Create and [remember] a instance of [State<PlayerState?>][State]. Update its [value][State.value]
+ * to reflect the [player] changes on each recomposition of the [rememberUpdatedPlayerState] call.
  */
 @Composable
-fun rememberPlayerState(player: Player): PlayerState {
-    return remember(player) { PlayerStateImpl(player) }
+fun rememberUpdatedPlayerState(player: Player?): State<PlayerState?> {
+    return rememberUpdatedState(
+        if (player == null) null
+        else remember(player) { PlayerStateImpl(player) }
+    )
 }
 
 /**

@@ -3,9 +3,9 @@
 A library which provides a `Media` composable component for [ExoPlayer][exoplayer] media playbacks.
 
 ```Kotlin
-val state = rememberUpdatedMediaState(player = player)
+val playerState by rememberUpdatedPlayerState(player = player)
 Media(
-    state = state,
+    state = rememberMediaState(playerState = playerState),
     // following parameters are optional
     modifier = Modifier.fillMaxSize().background(Color.Black),
     surfaceType = SurfaceType.SurfaceView,

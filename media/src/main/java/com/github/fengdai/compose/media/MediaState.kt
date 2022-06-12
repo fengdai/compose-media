@@ -5,22 +5,17 @@ import com.google.android.exoplayer2.Player
 
 /**
  * Create and [remember] a [MediaState] instance.
+ *
+ * Changes to [playerState] will result in the [MediaState] being updated.
+ *
+ * @param playerState the value for [MediaState.playerState]
  */
 @Composable
-fun rememberMediaState(): MediaState {
-    return remember { MediaState() }
-}
-
-/**
- * Create and [remember] a [MediaState] instance. Update its [playerState][MediaState.playerState]
- * to reflect the [player] changes on each recomposition of the [rememberUpdatedMediaState] call.
- */
-@Composable
-fun rememberUpdatedMediaState(
-    player: Player?
+fun rememberMediaState(
+    playerState: PlayerState?
 ): MediaState {
     return remember { MediaState() }.apply {
-        playerState = if (player != null) rememberPlayerState(player) else null
+        this.playerState = playerState
     }
 }
 

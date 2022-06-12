@@ -15,7 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.github.fengdai.compose.media.Media
-import com.github.fengdai.compose.media.rememberUpdatedMediaState
+import com.github.fengdai.compose.media.rememberMediaState
+import com.github.fengdai.compose.media.rememberUpdatedPlayerState
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
@@ -83,8 +84,9 @@ fun InsideListContent(
                         prepare()
                     }
                 }
+                val playerState by rememberUpdatedPlayerState(player = player)
                 Media(
-                    state = rememberUpdatedMediaState(player = player),
+                    state = rememberMediaState(playerState = playerState),
                     modifier = Modifier
                         .matchParentSize()
                         .background(Color.Black)
