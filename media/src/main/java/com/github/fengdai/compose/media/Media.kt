@@ -6,20 +6,16 @@ import android.view.View
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.PlaybackException
@@ -35,36 +31,6 @@ enum class SurfaceType {
     None,
     SurfaceView,
     TextureView;
-}
-
-/**
- * Controls how video and album art is resized.
- */
-enum class ResizeMode {
-    /**
-     * Either the width or height is decreased to obtain the desired aspect ratio.
-     */
-    Fit,
-
-    /**
-     * The width is fixed and the height is increased or decreased to obtain the desired aspect ratio.
-     */
-    FixedWidth,
-
-    /**
-     * The height is fixed and the width is increased or decreased to obtain the desired aspect ratio.
-     */
-    FixedHeight,
-
-    /**
-     * The specified aspect ratio is ignored.
-     */
-    Fill,
-
-    /**
-     * Either the width or height is increased to obtain the desired aspect ratio.
-     */
-    Zoom,
 }
 
 /**
@@ -289,13 +255,7 @@ fun Media(
                 painter = artworkPainter,
                 contentDescription = "",
                 modifier = Modifier.fillMaxSize(),
-                contentScale = when (resizeMode) {
-                    ResizeMode.Fit -> ContentScale.Fit
-                    ResizeMode.FixedWidth -> ContentScale.FillWidth
-                    ResizeMode.FixedHeight -> ContentScale.FillHeight
-                    ResizeMode.Fill -> ContentScale.FillBounds
-                    ResizeMode.Zoom -> ContentScale.Crop
-                }
+                contentScale = resizeMode.contentScale
             )
             contentAspectRatioSetter(
                 artworkPainter.intrinsicSize.run { if (height == 0f) 0f else width / height }
@@ -338,59 +298,6 @@ fun Media(
         if (controller != null) controller(state)
     }
 }
-
-private fun Modifier.resize(
-    aspectRatio: Float,
-    resizeMode: ResizeMode
-) = when (resizeMode) {
-    ResizeMode.Fit -> aspectRatio(aspectRatio)
-    ResizeMode.Fill -> fillMaxSize()
-    ResizeMode.FixedWidth -> fixedWidth(aspectRatio)
-    ResizeMode.FixedHeight -> fixedHeight(aspectRatio)
-    ResizeMode.Zoom -> zoom(aspectRatio)
-}
-
-private fun Modifier.fixedWidth(
-    aspectRatio: Float
-) = clipToBounds()
-    .fillMaxWidth()
-    .wrapContentHeight(unbounded = true)
-    .aspectRatio(aspectRatio)
-
-private fun Modifier.fixedHeight(
-    aspectRatio: Float
-) = clipToBounds()
-    .fillMaxHeight()
-    .wrapContentWidth(unbounded = true)
-    .aspectRatio(aspectRatio)
-
-private fun Modifier.zoom(
-    aspectRatio: Float
-) = clipToBounds()
-    .layout { measurable, constraints ->
-        val maxWidth = constraints.maxWidth
-        val maxHeight = constraints.maxHeight
-        if (aspectRatio > maxWidth.toFloat() / maxHeight) {
-            // wrap width unbounded
-            val modifiedConstraints = constraints.copy(maxWidth = Constraints.Infinity)
-            val placeable = measurable.measure(modifiedConstraints)
-            layout(constraints.maxWidth, placeable.height) {
-                val offsetX = Alignment.CenterHorizontally
-                    .align(0, constraints.maxWidth - placeable.width, layoutDirection)
-                placeable.place(IntOffset(offsetX, 0))
-            }
-        } else {
-            // wrap height unbounded
-            val modifiedConstraints = constraints.copy(maxHeight = Constraints.Infinity)
-            val placeable = measurable.measure(modifiedConstraints)
-            layout(placeable.width, constraints.maxHeight) {
-                val offsetY = Alignment.CenterVertically
-                    .align(0, constraints.maxHeight - placeable.height)
-                placeable.place(IntOffset(0, offsetY))
-            }
-        }
-    }
-    .aspectRatio(aspectRatio)
 
 @Composable
 private fun VideoSurface(
