@@ -99,7 +99,7 @@ fun BasicContent(
         onDispose {}
     }
 
-    val state = rememberUpdatedMediaState(player = player.takeIf { setPlayer })
+    val state = rememberMediaState(player = player.takeIf { setPlayer })
     val content = remember {
         movableContentOf {
             Media(

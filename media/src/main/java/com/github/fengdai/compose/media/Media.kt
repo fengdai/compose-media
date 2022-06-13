@@ -127,7 +127,7 @@ fun Media(
     // shutter
     var closeShutter by remember { mutableStateOf(true) }
     val playerState = state.playerState
-    key(playerState?.player) {
+    key(playerState) {
         var isNewPlayer by remember { mutableStateOf(true) }
         val tracksInfo = playerState?.tracksInfo
         DisposableEffect(tracksInfo, keepContentOnPlayerReset) {
@@ -148,8 +148,9 @@ fun Media(
 
     var lastArtworkPainter by remember { mutableStateOf<Painter?>(null) }
 
-    if (playerState != null) {
-        DisposableEffect(playerState.player) {
+    val player = state.player
+    if (player != null) {
+        DisposableEffect(player) {
             val listener = object : Player.Listener {
                 override fun onVideoSizeChanged(videoSize: VideoSize) {
                     var videoAspectRatio = if (videoSize.height == 0) 0f
@@ -188,9 +189,9 @@ fun Media(
                     }
                 }
             }
-            playerState.player.addListener(listener)
+            player.addListener(listener)
             onDispose {
-                playerState.player.removeListener(listener)
+                player.removeListener(listener)
             }
         }
     }
@@ -208,7 +209,7 @@ fun Media(
     ) {
         // video
         VideoSurface(
-            player = playerState?.player,
+            player = state.player,
             surfaceType = surfaceType,
             modifier = Modifier
                 .align(Alignment.Center)
@@ -224,7 +225,7 @@ fun Media(
         )
 
         // artwork in audio stream
-        val hideArtwork by remember(playerState?.player, useArtwork) {
+        val hideArtwork by remember(playerState, useArtwork) {
             derivedStateOf {
                 !useArtwork
                         ||
@@ -267,7 +268,7 @@ fun Media(
         subtitles?.invoke(cues)
 
         // buffering
-        val isBufferingShowing by remember(playerState?.player, showBuffering) {
+        val isBufferingShowing by remember(playerState, showBuffering) {
             derivedStateOf {
                 playerState?.run {
                     playbackState == Player.STATE_BUFFERING
@@ -287,8 +288,8 @@ fun Media(
         overlay?.invoke()
 
         // controller
-        DisposableEffect(playerState?.player) {
-            if (playerState == null) {
+        DisposableEffect(player) {
+            if (player == null) {
                 state.controllerVisibility = ControllerVisibility.Invisible
             } else if (controller != null) {
                 state.maybeShowController()

@@ -19,7 +19,7 @@ import androidx.navigation.NavHostController
 import com.github.fengdai.compose.media.Media
 import com.github.fengdai.compose.media.MediaState
 import com.github.fengdai.compose.media.ShowBuffering
-import com.github.fengdai.compose.media.rememberUpdatedMediaState
+import com.github.fengdai.compose.media.rememberMediaState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.exoplayer2.MediaItem
 
@@ -43,7 +43,7 @@ fun FullscreenToggle(navController: NavHostController) {
         }
     }
 
-    val mediaState = rememberUpdatedMediaState(player)
+    val mediaState = rememberMediaState(player)
     val mediaContent = remember {
         // TODO movableContentOf here doesn't avoid Media from recreating its surface view when
         // screen rotation changed. Seems like a bug of Compose.

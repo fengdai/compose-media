@@ -1,20 +1,13 @@
 package com.github.fengdai.compose.media
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.text.Cue
 import com.google.android.exoplayer2.trackselection.TrackSelectionParameters
 import com.google.android.exoplayer2.video.VideoSize
-
-/**
- * Create a [PlayerState] instance. Remember it if [player] is equal to the previous composition,
- * otherwise produce and remember a new [PlayerState].
- */
-@Composable
-fun rememberPlayerState(player: Player): PlayerState {
-    return remember(player) { PlayerStateImpl(player) }
-}
 
 /**
  * A state object that can be used to observe the [player]'s states.
@@ -80,7 +73,7 @@ interface PlayerState {
 
 internal class PlayerStateImpl(
     override val player: Player
-) : PlayerState, RememberObserver {
+) : PlayerState {
     override var timeline: Timeline by mutableStateOf(player.currentTimeline)
         private set
 
@@ -284,30 +277,21 @@ internal class PlayerStateImpl(
             this@PlayerStateImpl.cues = cues
         }
     }
-    private var remembered = false
 
-    init {
-        // Add listener as soon as possible
-        onRemembered()
-    }
+    var isListening = false
+        private set
 
-    override fun onRemembered() {
-        if (!remembered) {
+    fun registerListener() {
+        if (!isListening) {
             player.addListener(listener)
-            remembered = true
+            isListening = true
         }
     }
 
-    override fun onAbandoned() {
-        clear()
-    }
-
-    override fun onForgotten() {
-        clear()
-    }
-
-    private fun clear() {
-        player.removeListener(listener)
-        remembered = false
+    fun unregisterListener() {
+        if (isListening) {
+            player.removeListener(listener)
+            isListening = false
+        }
     }
 }

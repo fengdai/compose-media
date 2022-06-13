@@ -3,7 +3,7 @@
 A library which provides a `Media` composable component for [ExoPlayer][exoplayer] media playbacks.
 
 ```Kotlin
-val state = rememberUpdatedMediaState(player = player)
+val state = rememberMediaState(player = player)
 Media(
     state = state,
     // following parameters are optional

@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.github.fengdai.compose.media.Media
-import com.github.fengdai.compose.media.rememberUpdatedMediaState
+import com.github.fengdai.compose.media.rememberMediaState
 import com.google.android.exoplayer2.MediaItem
 
 @Composable
@@ -76,7 +76,7 @@ fun InsideListContent(
                     }
                 }
                 Media(
-                    state = rememberUpdatedMediaState(player = player),
+                    state = rememberMediaState(player = player),
                     modifier = Modifier
                         .matchParentSize()
                         .background(Color.Black)
