@@ -12,17 +12,16 @@ import com.google.android.exoplayer2.ui.StyledPlayerControlView
  */
 @Composable
 fun StyledPlayerControlViewController(
-    state: MediaState,
+    mediaState: MediaState,
     modifier: Modifier = Modifier,
     showTimeoutMs: Int = StyledPlayerControlView.DEFAULT_SHOW_TIMEOUT_MS
 ) {
-    val controllerState = state.controllerState
     AndroidView(
         factory = { context ->
             StyledPlayerControlView(context).apply {
                 hideImmediately()
                 addVisibilityListener {
-                    controllerState.visibility = if (isVisible) {
+                    mediaState.controllerVisibility = if (isVisible) {
                         if (isFullyVisible) ControllerVisibility.Visible
                         else ControllerVisibility.PartiallyVisible
                     } else ControllerVisibility.Invisible
@@ -31,16 +30,16 @@ fun StyledPlayerControlViewController(
         },
         modifier = modifier
     ) {
-        it.player = state.playerState?.player
+        it.player = mediaState.playerState?.player
         it.showTimeoutMs =
-            if (controllerState.shouldShowIndefinitely) 0
+            if (mediaState.shouldShowControllerIndefinitely) 0
             else showTimeoutMs
 
-        if (controllerState.visibility == ControllerVisibility.Visible) {
-            if (controllerState.visibility != ControllerVisibility.PartiallyVisible) {
+        if (mediaState.controllerVisibility == ControllerVisibility.Visible) {
+            if (mediaState.controllerVisibility != ControllerVisibility.PartiallyVisible) {
                 it.show()
             }
-        } else if (controllerState.visibility == ControllerVisibility.Invisible) {
+        } else if (mediaState.controllerVisibility == ControllerVisibility.Invisible) {
             if (it.isVisible) it.hide()
         }
     }

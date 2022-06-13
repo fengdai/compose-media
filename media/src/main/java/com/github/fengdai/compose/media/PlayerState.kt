@@ -24,6 +24,8 @@ interface PlayerState {
 
     val timeline: Timeline
 
+    val mediaItemIndex: Int
+
     val tracksInfo: TracksInfo
 
     val mediaMetadata: MediaMetadata
@@ -80,6 +82,9 @@ internal class PlayerStateImpl(
     override val player: Player
 ) : PlayerState, RememberObserver {
     override var timeline: Timeline by mutableStateOf(player.currentTimeline)
+        private set
+
+    override var mediaItemIndex: Int by mutableStateOf(player.currentMediaItemIndex)
         private set
 
     override var tracksInfo: TracksInfo by mutableStateOf(player.currentTracksInfo)
@@ -160,6 +165,7 @@ internal class PlayerStateImpl(
     private val listener = object : Player.Listener {
         override fun onTimelineChanged(timeline: Timeline, reason: Int) {
             this@PlayerStateImpl.timeline = timeline
+            this@PlayerStateImpl.mediaItemIndex = player.currentMediaItemIndex
         }
 
         override fun onTracksInfoChanged(tracksInfo: TracksInfo) {
@@ -215,6 +221,14 @@ internal class PlayerStateImpl(
 
         override fun onPlayerErrorChanged(error: PlaybackException?) {
             this@PlayerStateImpl.playerError = error
+        }
+
+        override fun onPositionDiscontinuity(
+            oldPosition: Player.PositionInfo,
+            newPosition: Player.PositionInfo,
+            reason: Int
+        ) {
+            this@PlayerStateImpl.mediaItemIndex = player.currentMediaItemIndex
         }
 
         override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {

@@ -20,6 +20,7 @@ private val Samples = listOf(
     "basic" to "Basic",
     "list" to "Inside List",
     "fullscreen-toggle" to "Fullscreen Toggle",
+    "timebars" to "TimeBars",
 //    "exo-styled-player-view" to "Exo StyledPlayerView",
 )
 

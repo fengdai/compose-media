@@ -37,6 +37,9 @@ class MainActivity : ComponentActivity() {
                     composable("fullscreen-toggle") {
                         FullscreenToggle(navController)
                     }
+                    composable("timebars") {
+                        TimeBars(navController)
+                    }
                     composable("exo-styled-player-view") {
                         StyledPlayerViewSample()
                     }

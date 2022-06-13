@@ -216,8 +216,8 @@ fun Media(
                             Player.EVENT_PLAY_WHEN_READY_CHANGED
                         )
                     ) {
-                        if (state.controllerState.autoShow) {
-                            state.controllerState.maybeShow()
+                        if (state.controllerAutoShow) {
+                            state.maybeShowController()
                         }
                     }
                 }
@@ -236,7 +236,7 @@ fun Media(
                 interactionSource = remember { MutableInteractionSource() }
             ) {
                 if (controller != null && playerState != null) {
-                    state.controllerState.toggleVisibility()
+                    state.toggleControllerVisibility()
                 }
             }
     ) {
@@ -329,9 +329,9 @@ fun Media(
         // controller
         DisposableEffect(playerState?.player) {
             if (playerState == null) {
-                state.controllerState.visibility = ControllerVisibility.Invisible
+                state.controllerVisibility = ControllerVisibility.Invisible
             } else if (controller != null) {
-                state.controllerState.maybeShow()
+                state.maybeShowController()
             }
             onDispose {}
         }

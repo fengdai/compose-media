@@ -162,8 +162,8 @@ fun BasicContent(
                     val enabled = controllerType != ControllerType.None
                     var hideOnTouch by rememberSaveable { mutableStateOf(true) }
                     var autoShow by rememberSaveable { mutableStateOf(true) }
-                    state.controllerState.hideOnTouch = hideOnTouch
-                    state.controllerState.autoShow = autoShow
+                    state.controllerHideOnTouch = hideOnTouch
+                    state.controllerAutoShow = autoShow
                     BooleanOption("Hide On Touch", hideOnTouch, enabled) { hideOnTouch = it }
                     BooleanOption("Auto Show", autoShow, enabled) { autoShow = it }
                 }

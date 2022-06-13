@@ -34,68 +34,54 @@ class MediaState {
      */
     var playerState: PlayerState? by mutableStateOf(null)
 
+    // Controller visibility related properties and functions
     /**
-     * The state of the [Media]'s controller.
+     * Whether the playback controls are hidden by touch. Default is true.
      */
-    val controllerState: ControllerState = ControllerState()
+    var controllerHideOnTouch by mutableStateOf(true)
 
-    inner class ControllerState internal constructor() {
-        /**
-         * Whether the playback controls are hidden by touch. Default is true.
-         */
-        var hideOnTouch by mutableStateOf(true)
+    /**
+     * Whether the playback controls are automatically shown when playback starts, pauses, ends, or
+     * fails.
+     */
+    var controllerAutoShow by mutableStateOf(true)
 
-        /**
-         * Whether the playback controls are automatically shown when playback starts, pauses, ends, or
-         * fails.
-         */
-        var autoShow by mutableStateOf(true)
+    var isControllerShowing
+        get() = controllerVisibility.isShowing
+        set(value) {
+            controllerVisibility = if (value) ControllerVisibility.Visible
+            else ControllerVisibility.Invisible
+        }
 
-        var isShowing
-            get() = visibility.isShowing
-            set(value) {
-                visibility = if (value) ControllerVisibility.Visible
-                else ControllerVisibility.Invisible
+    var controllerVisibility by mutableStateOf(ControllerVisibility.Invisible)
+
+    val shouldShowControllerIndefinitely by derivedStateOf {
+        playerState?.run {
+            !timeline.isEmpty
+                    &&
+                    (playbackState == Player.STATE_IDLE
+                            || playbackState == Player.STATE_ENDED
+                            || !playWhenReady)
+        } ?: true
+    }
+
+    internal fun toggleControllerVisibility() {
+        controllerVisibility = when (controllerVisibility) {
+            ControllerVisibility.Visible -> {
+                if (controllerHideOnTouch) ControllerVisibility.Invisible
+                else ControllerVisibility.Visible
             }
-
-        var visibility by mutableStateOf(ControllerVisibility.Invisible)
-
-        val shouldShowIndefinitely by derivedStateOf {
-            playerState?.run {
-                !timeline.isEmpty
-                        &&
-                        (playbackState == Player.STATE_IDLE
-                                || playbackState == Player.STATE_ENDED
-                                || !playWhenReady)
-            } ?: true
+            ControllerVisibility.PartiallyVisible -> ControllerVisibility.Visible
+            ControllerVisibility.Invisible -> ControllerVisibility.Visible
         }
+    }
 
-        val showPause by derivedStateOf {
-            playerState?.run {
-                playbackState != Player.STATE_ENDED
-                        && playbackState != Player.STATE_IDLE
-                        && playWhenReady
-            } ?: false
+    internal fun maybeShowController(force: Boolean = false): Boolean {
+        if (force || (controllerAutoShow && shouldShowControllerIndefinitely)) {
+            controllerVisibility = ControllerVisibility.Visible
+            return true
         }
-
-        internal fun toggleVisibility() {
-            visibility = when (visibility) {
-                ControllerVisibility.Visible -> {
-                    if (hideOnTouch) ControllerVisibility.Invisible
-                    else ControllerVisibility.Visible
-                }
-                ControllerVisibility.PartiallyVisible -> ControllerVisibility.Visible
-                ControllerVisibility.Invisible -> ControllerVisibility.Visible
-            }
-        }
-
-        internal fun maybeShow(force: Boolean = false): Boolean {
-            if (force || (autoShow && shouldShowIndefinitely)) {
-                visibility = ControllerVisibility.Visible
-                return true
-            }
-            return false
-        }
+        return false
     }
 }
 
