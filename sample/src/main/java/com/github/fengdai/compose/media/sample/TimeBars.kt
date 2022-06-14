@@ -68,7 +68,7 @@ fun DefaultTimeBar() {
             .height(52.dp),
         contentPadding = PaddingValues(24.dp),
         scrubberCenterAsAnchor = true,
-        onScrubStop = { position = it }
+        onScrubStop = { position = it },
     )
 }
 
@@ -198,7 +198,7 @@ fun NyanCatTimeBar() {
             if (enabled) {
                 Image(
                     painter = painterResource(id = R.drawable.nyan_cat),
-                    contentDescription = "Nyan Cat",
+                    contentDescription = null,
                     Modifier.size(42.dp)
                 )
             }

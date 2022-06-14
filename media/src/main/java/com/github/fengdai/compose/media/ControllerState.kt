@@ -37,7 +37,7 @@ class ControllerState {
     }
 
     /**
-     * The duration, in milliseconds.
+     * The duration, in milliseconds. Return [C.TIME_UNSET] if it's unset or unknown.
      */
     val durationMs: Long by derivedStateOf {
         windowOffsetAndDurations

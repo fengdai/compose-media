@@ -2,27 +2,29 @@ package com.github.fengdai.compose.media
 
 import android.graphics.BitmapFactory
 import android.view.SurfaceView
+import android.view.TextureView
 import android.view.View
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.viewinterop.AndroidView
-import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.text.Cue
-import com.google.android.exoplayer2.video.VideoSize
-import kotlin.math.absoluteValue
+import kotlinx.coroutines.flow.collect
 
 /**
  * The type of surface view used for video playbacks.
@@ -89,6 +91,9 @@ enum class ShowBuffering {
  * @param errorMessage The error message, which will be shown when an [error][PlaybackException]
  * occurred. Default is null.
  * @param overlay An overlay, which can be shown on top of the player. Default is null.
+ * @param controllerHideOnTouch Whether the playback controls are hidden by touch. Default is true.
+ * @param controllerAutoShow Whether the playback controls are automatically shown when playback
+ * starts, pauses, ends, or fails.
  * @param controller The controller. Since a controller is always a subject to be customized,
  * default is null. The [Media] only provides logic for controller visibility controlling.
  */
@@ -107,93 +112,12 @@ fun Media(
     buffering: @Composable (() -> Unit)? = null,
     errorMessage: @Composable ((PlaybackException) -> Unit)? = null,
     overlay: @Composable (() -> Unit)? = null,
+    controllerHideOnTouch: Boolean = true,
+    controllerAutoShow: Boolean = true,
     controller: @Composable ((MediaState) -> Unit)? = null
 ) {
     if (showBuffering != ShowBuffering.Never) require(buffering != null) {
         "buffering should not be null if showBuffering is 'ShowBuffering.$showBuffering'"
-    }
-
-    var contentAspectRatio by remember { mutableStateOf(0f) }
-    val contentAspectRatioSetter: (Float) -> Unit = { targetContentAspectRatio ->
-        val aspectDeformation: Float = targetContentAspectRatio / contentAspectRatio - 1f
-        if (aspectDeformation.absoluteValue > 0.01f) {
-            // Not within the allowed tolerance, populate the new viewAspectRatio.
-            contentAspectRatio = targetContentAspectRatio
-        }
-    }
-
-    var textureViewRotation by remember(surfaceType) { mutableStateOf(0) }
-
-    // shutter
-    var closeShutter by remember { mutableStateOf(true) }
-    val playerState = state.playerState
-    key(playerState) {
-        var isNewPlayer by remember { mutableStateOf(true) }
-        val tracksInfo = playerState?.tracksInfo
-        DisposableEffect(tracksInfo, keepContentOnPlayerReset) {
-            if (playerState == null || tracksInfo?.trackGroupInfos.isNullOrEmpty()) {
-                if (!keepContentOnPlayerReset) {
-                    closeShutter = true
-                }
-            } else if (
-                (isNewPlayer && !keepContentOnPlayerReset)
-                || tracksInfo?.isTypeSelected(C.TRACK_TYPE_VIDEO) != true
-            ) {
-                closeShutter = true
-            }
-            onDispose {}
-        }
-        isNewPlayer = false
-    }
-
-    var lastArtworkPainter by remember { mutableStateOf<Painter?>(null) }
-
-    val player = state.player
-    if (player != null) {
-        DisposableEffect(player) {
-            val listener = object : Player.Listener {
-                override fun onVideoSizeChanged(videoSize: VideoSize) {
-                    var videoAspectRatio = if (videoSize.height == 0) 0f
-                    else videoSize.width * videoSize.pixelWidthHeightRatio / videoSize.height
-
-                    if (surfaceType == SurfaceType.TextureView) {
-                        val unappliedRotationDegrees = videoSize.unappliedRotationDegrees
-                        // Try to apply rotation transformation when our surface is a TextureView.
-                        if (videoAspectRatio > 0
-                            && (unappliedRotationDegrees == 90 || unappliedRotationDegrees == 270)
-                        ) {
-                            // We will apply a rotation 90/270 degree to the output texture of the TextureView.
-                            // In this case, the output video's width and height will be swapped.
-                            videoAspectRatio = 1 / videoAspectRatio
-                        }
-                        textureViewRotation = videoSize.unappliedRotationDegrees
-                    }
-
-                    contentAspectRatioSetter(videoAspectRatio)
-                }
-
-                override fun onRenderedFirstFrame() {
-                    closeShutter = false
-                    lastArtworkPainter = null
-                }
-
-                override fun onEvents(player: Player, events: Player.Events) {
-                    if (events.containsAny(
-                            Player.EVENT_PLAYBACK_STATE_CHANGED,
-                            Player.EVENT_PLAY_WHEN_READY_CHANGED
-                        )
-                    ) {
-                        if (state.controllerAutoShow) {
-                            state.maybeShowController()
-                        }
-                    }
-                }
-            }
-            player.addListener(listener)
-            onDispose {
-                player.removeListener(listener)
-            }
-        }
     }
 
     Box(
@@ -202,75 +126,103 @@ fun Media(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
             ) {
-                if (controller != null && playerState != null) {
-                    state.toggleControllerVisibility()
+                if (controller != null && state.player != null) {
+                    state.controllerVisibility = when (state.controllerVisibility) {
+                        ControllerVisibility.Visible -> {
+                            if (controllerHideOnTouch) ControllerVisibility.Invisible
+                            else ControllerVisibility.Visible
+                        }
+                        ControllerVisibility.PartiallyVisible -> ControllerVisibility.Visible
+                        ControllerVisibility.Invisible -> ControllerVisibility.Visible
+                    }
                 }
             }
     ) {
         // video
-        VideoSurface(
-            player = state.player,
-            surfaceType = surfaceType,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .run {
-                    if (contentAspectRatio <= 0) fillMaxSize()
-                    else resize(contentAspectRatio, resizeMode)
-                }
-                .drawWithContent {
-                    drawContent()
-                    if (closeShutter) drawRect(shutterColor)
-                },
-            textureViewRotation,
-        )
-
-        // artwork in audio stream
-        val hideArtwork by remember(playerState, useArtwork) {
-            derivedStateOf {
-                !useArtwork
-                        ||
-                        (playerState?.tracksInfo?.run {
-                            trackGroupInfos.isEmpty() || isTypeSelected(C.TRACK_TYPE_VIDEO)
-                        } ?: true)
+        Box(modifier = Modifier
+            .align(Alignment.Center)
+            .run {
+                if (state.contentAspectRatio <= 0) fillMaxSize()
+                else resize(state.contentAspectRatio, resizeMode)
             }
-        }
-        val artworkPainter: Painter? = when {
-            !hideArtwork -> {
-                val metadataArtworkData = playerState?.mediaMetadata?.artworkData
-                val metadataArtworkPainter by remember(metadataArtworkData) {
-                    lazy {
-                        metadataArtworkData?.run {
-                            BitmapPainter(
-                                BitmapFactory.decodeByteArray(this, 0, size).asImageBitmap()
-                            )
+        ) {
+            VideoSurface(
+                state = state,
+                surfaceType = surfaceType,
+                modifier = Modifier
+                    .testTag(TestTag_VideoSurface)
+                    .fillMaxSize()
+            )
+
+            // shutter
+            if (state.closeShutter) {
+                Spacer(
+                    modifier = Modifier
+                        .testTag(TestTag_Shutter)
+                        .fillMaxSize()
+                        .background(shutterColor)
+                )
+            }
+            LaunchedEffect(keepContentOnPlayerReset) {
+                snapshotFlow { state.isVideoTrackSelected }
+                    .collect { isVideoTrackSelected ->
+                        when (isVideoTrackSelected) {
+                            // non video track is selected, so the shutter must be closed
+                            false -> state.closeShutter = true
+                            // no track
+                            // If keepContentOnPlayerReset is false, close shutter
+                            // Otherwise, open it
+                            null -> state.closeShutter = !keepContentOnPlayerReset
+                            true -> {}
                         }
                     }
-                }
-                (metadataArtworkPainter ?: defaultArtworkPainter).also { lastArtworkPainter = it }
             }
-            keepContentOnPlayerReset -> lastArtworkPainter
+            LaunchedEffect(Unit) {
+                snapshotFlow { state.player }
+                    .collect { player ->
+                        val isNewPlayer = player != null
+                        if (isNewPlayer && !keepContentOnPlayerReset) {
+                            // hide any video from the previous player.
+                            state.closeShutter = true
+                        }
+                    }
+            }
+        }
+
+        // artwork in audio stream
+        val artworkPainter: Painter? = when {
+            // non video track is selected, can use artwork
+            state.isVideoTrackSelected == false -> {
+                val painter =
+                    if (!useArtwork) null
+                    else rememberBitmapPainter(state.artworkData) ?: defaultArtworkPainter
+                state.artworkPainter = painter
+                painter
+            }
+            keepContentOnPlayerReset -> state.artworkPainter
             else -> null
         }
         if (artworkPainter != null) {
             Image(
                 painter = artworkPainter,
-                contentDescription = "",
-                modifier = Modifier.fillMaxSize(),
+                contentDescription = null,
+                modifier = Modifier
+                    .testTag(TestTag_Artwork)
+                    .fillMaxSize(),
                 contentScale = resizeMode.contentScale
-            )
-            contentAspectRatioSetter(
-                artworkPainter.intrinsicSize.run { if (height == 0f) 0f else width / height }
             )
         }
 
         // subtitles
-        val cues = playerState?.cues.takeIf { !it.isNullOrEmpty() } ?: emptyList()
-        subtitles?.invoke(cues)
+        if (subtitles != null) {
+            val cues = state.playerState?.cues.takeIf { !it.isNullOrEmpty() } ?: emptyList()
+            subtitles(cues)
+        }
 
         // buffering
-        val isBufferingShowing by remember(playerState, showBuffering) {
+        val isBufferingShowing by remember(showBuffering) {
             derivedStateOf {
-                playerState?.run {
+                state.playerState?.run {
                     playbackState == Player.STATE_BUFFERING
                             && (showBuffering == ShowBuffering.Always
                             || (showBuffering == ShowBuffering.WhenPlaying && playWhenReady))
@@ -280,69 +232,94 @@ fun Media(
         if (isBufferingShowing) buffering?.invoke()
 
         // error message
-        playerState?.playerError?.run {
-            errorMessage?.invoke(this)
+        if (errorMessage != null) {
+            state.playerError?.run { errorMessage(this) }
         }
 
         // overlay
         overlay?.invoke()
 
         // controller
-        DisposableEffect(player) {
-            if (player == null) {
-                state.controllerVisibility = ControllerVisibility.Invisible
-            } else if (controller != null) {
-                state.maybeShowController()
+        if (controller != null) {
+            state.controllerAutoShow = controllerAutoShow
+            LaunchedEffect(Unit) {
+                snapshotFlow { state.player }.collect { player ->
+                    if (player != null) {
+                        state.maybeShowController()
+                    }
+                }
             }
-            onDispose {}
+            controller(state)
         }
-        if (controller != null) controller(state)
     }
 }
 
 @Composable
 private fun VideoSurface(
-    player: Player?,
+    state: MediaState,
     surfaceType: SurfaceType,
-    modifier: Modifier,
-    textureViewRotation: Int
+    modifier: Modifier
 ) {
-    key(surfaceType) {
-        AndroidView(
-            factory = { context ->
+    val context = LocalContext.current
+    key(surfaceType, context) {
+        if (surfaceType != SurfaceType.None) {
+            fun Player.clearVideoView(view: View) {
                 when (surfaceType) {
-                    SurfaceType.None -> View(context)
-                    SurfaceType.TextureView -> TextureView(context)
+                    SurfaceType.None -> throw IllegalStateException()
+                    SurfaceType.SurfaceView -> clearVideoSurfaceView(view as SurfaceView)
+                    SurfaceType.TextureView -> clearVideoTextureView(view as TextureView)
+                }
+            }
+
+            fun Player.setVideoView(view: View) {
+                when (surfaceType) {
+                    SurfaceType.None -> throw IllegalStateException()
+                    SurfaceType.SurfaceView -> setVideoSurfaceView(view as SurfaceView)
+                    SurfaceType.TextureView -> setVideoTextureView(view as TextureView)
+                }
+            }
+
+            val videoView = remember {
+                when (surfaceType) {
+                    SurfaceType.None -> throw IllegalStateException()
                     SurfaceType.SurfaceView -> SurfaceView(context)
-                }
-            },
-            modifier = modifier,
-        ) { surfaceView ->
-
-            // update TextureView rotation
-            (surfaceView as? TextureView)?.apply {
-                setRotation(textureViewRotation)
-            }
-
-            // update player
-            val oldPlayer = surfaceView.tag as? Player
-            if (oldPlayer === player) return@AndroidView
-
-            oldPlayer?.run {
-                when (surfaceType) {
-                    SurfaceType.None -> Unit
-                    SurfaceType.TextureView -> clearVideoTextureView(surfaceView as TextureView)
-                    SurfaceType.SurfaceView -> clearVideoSurfaceView(surfaceView as SurfaceView)
+                    SurfaceType.TextureView -> TextureView(context)
                 }
             }
+            AndroidView(
+                factory = { videoView },
+                modifier = modifier,
+            ) {
+                // update player
+                val currentPlayer = state.player
+                val previousPlayer = it.tag as? Player
+                if (previousPlayer === currentPlayer) return@AndroidView
 
-            surfaceView.tag = player?.apply {
-                when (surfaceType) {
-                    SurfaceType.None -> Unit
-                    SurfaceType.TextureView -> setVideoTextureView(surfaceView as TextureView)
-                    SurfaceType.SurfaceView -> setVideoSurfaceView(surfaceView as SurfaceView)
+                previousPlayer?.clearVideoView(it)
+
+                it.tag = currentPlayer?.apply {
+                    setVideoView(it)
+                }
+            }
+            DisposableEffect(Unit) {
+                onDispose {
+                    (videoView.tag as? Player)?.clearVideoView(videoView)
                 }
             }
         }
+    }
+}
+
+internal const val TestTag_VideoSurface = "VideoSurface"
+internal const val TestTag_Shutter = "Shutter"
+internal const val TestTag_Artwork = "Artwork"
+
+@Composable
+private fun rememberBitmapPainter(artworkData: ByteArray?): BitmapPainter? {
+    return if (artworkData == null) null
+    else remember(artworkData) {
+        BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
+            ?.asImageBitmap()
+            ?.run { BitmapPainter(this) }
     }
 }

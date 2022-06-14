@@ -78,6 +78,8 @@ fun BasicContent(
     var setPlayer by rememberSaveable { mutableStateOf(true) }
     var playWhenReady by rememberSaveable { mutableStateOf(true) }
 
+    var controllerHideOnTouch by rememberSaveable { mutableStateOf(true) }
+    var controllerAutoShow by rememberSaveable { mutableStateOf(true) }
     var controllerType by rememberSaveable { mutableStateOf(ControllerType.Simple) }
 
     var rememberedMediaItemIdAndPosition: Pair<String, Long>? by remember { mutableStateOf(null) }
@@ -129,6 +131,8 @@ fun BasicContent(
                         )
                     }
                 },
+                controllerHideOnTouch = controllerHideOnTouch,
+                controllerAutoShow = controllerAutoShow,
                 controller = when (controllerType) {
                     ControllerType.None -> null
                     ControllerType.Simple -> @Composable { state ->
@@ -156,12 +160,8 @@ fun BasicContent(
                 Option("Controller", ControllerTypes, controllerType) { controllerType = it }
                 Column(Modifier.padding(start = 18.dp)) {
                     val enabled = controllerType != ControllerType.None
-                    var hideOnTouch by rememberSaveable { mutableStateOf(true) }
-                    var autoShow by rememberSaveable { mutableStateOf(true) }
-                    state.controllerHideOnTouch = hideOnTouch
-                    state.controllerAutoShow = autoShow
-                    BooleanOption("Hide On Touch", hideOnTouch, enabled) { hideOnTouch = it }
-                    BooleanOption("Auto Show", autoShow, enabled) { autoShow = it }
+                    BooleanOption("Hide On Touch", controllerHideOnTouch, enabled) { controllerHideOnTouch = it }
+                    BooleanOption("Auto Show", controllerAutoShow, enabled) { controllerAutoShow = it }
                 }
             }
         }

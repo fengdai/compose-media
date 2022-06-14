@@ -14,6 +14,7 @@ android {
     defaultConfig {
         minSdk = 21
         targetSdk = 31
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     compileOptions {
@@ -39,6 +40,15 @@ android {
         )
     }
 
+    packagingOptions {
+        resources.pickFirsts += "META-INF/AL2.0"
+        resources.pickFirsts += "META-INF/LGPL2.1"
+        resources.pickFirsts += "META-INF/*kotlin_module"
+        resources.pickFirsts += "win32-x86-64/attach_hotspot_windows.dll"
+        resources.pickFirsts += "win32-x86/attach_hotspot_windows.dll"
+        resources.pickFirsts += "META-INF/licenses/ASM"
+    }
+
     publishing {
         singleVariant("release") {
             withJavadocJar()
@@ -50,6 +60,11 @@ android {
 dependencies {
     implementation(libs.exoplayer.common)
     implementation(libs.compose.foundation)
+
+    androidTestImplementation(libs.exoplayer.testutils)
+    androidTestImplementation(libs.kotlin.test)
+    androidTestImplementation(libs.compose.ui.test)
+    debugImplementation(libs.compose.ui.test.manifest)
 }
 
 afterEvaluate {

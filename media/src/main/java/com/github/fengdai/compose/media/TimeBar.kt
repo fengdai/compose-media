@@ -55,7 +55,7 @@ fun TimeBar(
     onScrubStop: ((positionMs: Long) -> Unit)? = null,
     progress: @Composable (current: Float, scrubbed: Float, buffered: Float) -> Unit = { _, scrubbed, buffered ->
         // by default, use scrubbed progress as played progress
-        TimeBarProgress(scrubbed, buffered)
+        TimeBarProgress(played = scrubbed, buffered = buffered)
     },
     scrubber: @Composable (enable: Boolean, scrubbing: Boolean) -> Unit = { enable, scrubbing ->
         TimeBarScrubber(enable, scrubbing)
@@ -114,7 +114,8 @@ fun TimeBar(
                     if (scrubberCenterAsAnchor) this
                     else this - scrubberWidth / 2
                 }
-                scrubPosition = (startX / boundWidth * durationMs).roundToLong()
+                scrubPosition =
+                    (startX / boundWidth * durationMs).roundToLong().coerceIn(0L, durationMs)
                 currentOnScrubStart?.invoke(scrubPosition)
             },
             onDragStopped = {

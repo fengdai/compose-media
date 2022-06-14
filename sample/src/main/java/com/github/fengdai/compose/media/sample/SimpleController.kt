@@ -51,7 +51,7 @@ fun SimpleController(
                         if (controllerState.showPause) R.drawable.pause
                         else R.drawable.play
                     ),
-                    contentDescription = "",
+                    contentDescription = null,
                     modifier = Modifier
                         .size(52.dp)
                         .clickable {

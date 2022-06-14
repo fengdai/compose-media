@@ -72,7 +72,8 @@ interface PlayerState {
 }
 
 internal class PlayerStateImpl(
-    override val player: Player
+    override val player: Player,
+    private val listener: Player.Listener
 ) : PlayerState {
     override var timeline: Timeline by mutableStateOf(player.currentTimeline)
         private set
@@ -155,7 +156,7 @@ internal class PlayerStateImpl(
     override var cues: List<Cue> by mutableStateOf(player.currentCues)
         private set
 
-    private val listener = object : Player.Listener {
+    private val innerListener = object : Player.Listener {
         override fun onTimelineChanged(timeline: Timeline, reason: Int) {
             this@PlayerStateImpl.timeline = timeline
             this@PlayerStateImpl.mediaItemIndex = player.currentMediaItemIndex
@@ -283,6 +284,7 @@ internal class PlayerStateImpl(
 
     fun registerListener() {
         if (!isListening) {
+            player.addListener(innerListener)
             player.addListener(listener)
             isListening = true
         }
@@ -290,8 +292,9 @@ internal class PlayerStateImpl(
 
     fun unregisterListener() {
         if (isListening) {
-            player.removeListener(listener)
             isListening = false
+            player.removeListener(listener)
+            player.removeListener(innerListener)
         }
     }
 }
