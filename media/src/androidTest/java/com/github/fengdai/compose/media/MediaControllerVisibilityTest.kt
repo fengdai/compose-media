@@ -1,6 +1,5 @@
 package com.github.fengdai.compose.media
 
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -20,11 +19,8 @@ class MediaControllerVisibilityTest {
     @Test
     fun toggle() {
         val player = FakePlayer()
-        val state = MediaState().apply {
-            this.player = player
-        }
+        val state = MediaState(player)
         composeTestRule.setContent {
-            remember { state.rememberObserver }
             Media(
                 modifier = Modifier.testTag(TestTag_Media),
                 state = state,
@@ -44,7 +40,7 @@ class MediaControllerVisibilityTest {
 
     @Test
     fun toggleByStateChanging() {
-        val state = MediaState()
+        val state = MediaState(null)
         state.isControllerShowing = true
         assertTrue(state.isControllerShowing)
 
@@ -55,11 +51,8 @@ class MediaControllerVisibilityTest {
     @Test
     fun controllerIsNull() {
         val player = FakePlayer()
-        val state = MediaState().apply {
-            this.player = player
-        }
+        val state = MediaState(player)
         composeTestRule.setContent {
-            remember { state.rememberObserver }
             Media(
                 controller = null,
                 modifier = Modifier.testTag(TestTag_Media),
@@ -75,11 +68,8 @@ class MediaControllerVisibilityTest {
     @Test
     fun hideWhenPlayerChangedToNull() {
         val player = FakePlayer()
-        val state = MediaState().apply {
-            this.player = player
-        }
+        val state = MediaState(player)
         composeTestRule.setContent {
-            remember { state.rememberObserver }
             Media(
                 modifier = Modifier.testTag(TestTag_Media),
                 state = state,
@@ -99,11 +89,8 @@ class MediaControllerVisibilityTest {
     @Test
     fun donNotHideOnTouch() {
         val player = FakePlayer()
-        val state = MediaState().apply {
-            this.player = player
-        }
+        val state = MediaState(player)
         composeTestRule.setContent {
-            remember { state.rememberObserver }
             Media(
                 controllerHideOnTouch = false,
                 modifier = Modifier.testTag(TestTag_Media),
@@ -129,11 +116,8 @@ class MediaControllerVisibilityTest {
             playbackState_ = Player.STATE_READY
             timeline_ = FakeTimeline()
         }
-        val state = MediaState().apply {
-            this.player = player
-        }
+        val state = MediaState(player)
         composeTestRule.setContent {
-            remember { state.rememberObserver }
             Media(
                 modifier = Modifier.testTag(TestTag_Media),
                 state = state,

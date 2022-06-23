@@ -1,5 +1,6 @@
 package com.github.fengdai.compose.media
 
+import android.os.Looper
 import androidx.compose.runtime.*
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.painter.Painter
@@ -7,11 +8,6 @@ import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.video.VideoSize
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
 /**
@@ -24,43 +20,39 @@ import kotlin.math.absoluteValue
 @Composable
 fun rememberMediaState(
     player: Player?
-): MediaState {
-    val state = remember { MediaState() }
-    remember { state.rememberObserver }
-    state.player = player
-    return state
+): MediaState = remember { MediaState(initPlayer = player) }.apply {
+    this.player = player
 }
 
 /**
  * A state object that can be hoisted to control and observe changes for [Media].
  */
 @Stable
-class MediaState internal constructor() {
+class MediaState(
+    initPlayer: Player? = null
+) {
     /**
-     * The player associated with the [Media].
+     * The player to use, or null to detach the current player.
+     * Only players which are accessed on the main thread are supported (`
+     * player.getApplicationLooper() == Looper.getMainLooper()`).
      */
     var player: Player?
         set(current) {
-            val previous = _playerState?.player
+            require(current == null || current.applicationLooper == Looper.getMainLooper()) {
+                "Only players which are accessed on the main thread are supported."
+            }
+            val previous = _player
             if (current !== previous) {
-                // unregister old PlayerState
-                _playerState?.unregisterListener()
-                _playerState =
-                    if (current != null) {
-                        // register new PlayerState
-                        PlayerStateImpl(current, listener).apply {
-                            if (rememberScope != null) registerListener()
-                        }
-                    } else null
-                onPlayerChanged(current)
+                _player = current
+                onPlayerChanged(previous, current)
             }
         }
-        get() = _playerState?.player
+        get() = _player
 
     /**
      * The state of the [Media]'s [player].
      */
-    val playerState: PlayerState? get() = _playerState
+    val playerState: PlayerState? get() = stateOfPlayerState.value
 
     // Controller visibility related properties and functions
     /**
@@ -102,13 +94,6 @@ class MediaState internal constructor() {
     }
 
     // internally used properties and functions
-    private fun onPlayerChanged(current: Player?) {
-        if (current == null) {
-            controllerVisibility = ControllerVisibility.Invisible
-        }
-    }
-
-    private var _playerState: PlayerStateImpl? by mutableStateOf(null)
     private val listener = object : Player.Listener {
         override fun onRenderedFirstFrame() {
             closeShutter = false
@@ -125,14 +110,26 @@ class MediaState internal constructor() {
             }
         }
     }
+    private var _player: Player? by mutableStateOf(initPlayer)
+    private fun onPlayerChanged(previous: Player?, current: Player?) {
+        previous?.removeListener(listener)
+        stateOfPlayerState.value?.dispose()
+        stateOfPlayerState.value = current?.state()
+        current?.addListener(listener)
+        if (current == null) {
+            controllerVisibility = ControllerVisibility.Invisible
+        }
+    }
 
-    private val contentAspectRatioRaw by derivedStateOf {
+    internal val stateOfPlayerState = mutableStateOf(initPlayer?.state())
+
+    internal val contentAspectRatioRaw by derivedStateOf {
         artworkPainter?.aspectRatio
             ?: (playerState?.videoSize ?: VideoSize.UNKNOWN).aspectRatio
     }
     private var _contentAspectRatio by mutableStateOf(0f)
     internal var contentAspectRatio
-        private set(value) {
+        internal set(value) {
             val aspectDeformation: Float = value / contentAspectRatio - 1f
             if (aspectDeformation.absoluteValue > 0.01f) {
                 // Not within the allowed tolerance, populate the new aspectRatio.
@@ -161,37 +158,8 @@ class MediaState internal constructor() {
         playerState?.playerError
     }
 
-    private var rememberScope: CoroutineScope? = null
-
-    // Don't let MediaState implement RememberObserver directly to avoid this issue:
-    // https://kotlinlang.slack.com/archives/CJLTWPH7S/p1653543177516939
-    internal val rememberObserver = object : RememberObserver {
-        override fun onRemembered() {
-            if (rememberScope != null) return
-            _playerState?.registerListener()
-
-            val scope = CoroutineScope(Job())
-            rememberScope = scope
-
-            scope.launch {
-                snapshotFlow { contentAspectRatioRaw }
-                    .collect { aspectRatio -> contentAspectRatio = aspectRatio }
-            }
-        }
-
-        override fun onForgotten() {
-            clear()
-        }
-
-        override fun onAbandoned() {
-            clear()
-        }
-
-        private fun clear() {
-            _playerState?.unregisterListener()
-            rememberScope?.cancel()
-            rememberScope = null
-        }
+    init {
+        initPlayer?.addListener(listener)
     }
 }
 

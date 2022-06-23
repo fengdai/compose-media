@@ -7,23 +7,26 @@ import com.google.android.exoplayer2.Timeline
 
 /**
  * Create and [remember] a [ControllerState] instance.
- *
- * Changes to [playerState] will result in the [ControllerState] being updated.
- *
- * @param playerState the value for [ControllerState.playerState]
  */
 @Composable
 fun rememberControllerState(
-    playerState: PlayerState?
+    mediaState: MediaState
 ): ControllerState {
-    return remember { ControllerState() }.apply {
-        this.playerState = playerState
-    }
+    return remember { ControllerState(mediaState) }
+}
+
+/**
+ * Create a [ControllerState] instance.
+ */
+fun ControllerState(mediaState: MediaState): ControllerState {
+    return ControllerState(mediaState.stateOfPlayerState)
 }
 
 @Stable
-class ControllerState {
-    var playerState: PlayerState? by mutableStateOf(null)
+class ControllerState internal constructor(
+    stateOfPlayerState: State<PlayerState?>
+) {
+    private val playerState: PlayerState? by stateOfPlayerState
 
     /**
      * If ture, show pause button. Otherwise, show play button.

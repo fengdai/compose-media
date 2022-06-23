@@ -30,7 +30,7 @@ fun StyledPlayerControlViewController(
         },
         modifier = modifier
     ) {
-        it.player = mediaState.playerState?.player
+        it.player = mediaState.player
         it.showTimeoutMs =
             if (mediaState.shouldShowControllerIndefinitely) 0
             else showTimeoutMs

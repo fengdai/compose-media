@@ -4,7 +4,6 @@ import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -86,11 +85,8 @@ class MediaArtworkTest {
     fun defaultArtwork() {
         val defaultArtworkPainter = ColorPainter(Color.Red)
         val audioPlayer = AudioPlayer(artwork = null)
-        val state = MediaState().apply {
-            player = audioPlayer
-        }
+        val state = MediaState(audioPlayer)
         composeTestRule.setContent {
-            remember { state.rememberObserver }
             Media(
                 state = state,
                 defaultArtworkPainter = defaultArtworkPainter,

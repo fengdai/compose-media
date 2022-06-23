@@ -120,6 +120,13 @@ fun Media(
         "buffering should not be null if showBuffering is 'ShowBuffering.$showBuffering'"
     }
 
+    LaunchedEffect(Unit) {
+        snapshotFlow { state.contentAspectRatioRaw }
+            .collect { contentAspectRatioRaw ->
+                state.contentAspectRatio = contentAspectRatioRaw
+            }
+    }
+
     Box(
         modifier = modifier
             .clickable(

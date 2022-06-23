@@ -10,6 +10,17 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionParameters
 import com.google.android.exoplayer2.video.VideoSize
 
 /**
+ * Create a instance of [PlayerState] and register a [listener][Player.Listener] to the [Player] to
+ * observe its states.
+ *
+ * NOTE: Should call [dispose][PlayerState.dispose] to unregister the listener to avoid leaking this
+ * instance when it is no longer used.
+ */
+fun Player.state(): PlayerState {
+    return PlayerStateImpl(this)
+}
+
+/**
  * A state object that can be used to observe the [player]'s states.
  */
 interface PlayerState {
@@ -69,11 +80,12 @@ interface PlayerState {
     val videoSize: VideoSize
 
     val cues: List<Cue>
+
+    fun dispose()
 }
 
 internal class PlayerStateImpl(
-    override val player: Player,
-    private val listener: Player.Listener
+    override val player: Player
 ) : PlayerState {
     override var timeline: Timeline by mutableStateOf(player.currentTimeline)
         private set
@@ -156,7 +168,7 @@ internal class PlayerStateImpl(
     override var cues: List<Cue> by mutableStateOf(player.currentCues)
         private set
 
-    private val innerListener = object : Player.Listener {
+    private val listener = object : Player.Listener {
         override fun onTimelineChanged(timeline: Timeline, reason: Int) {
             this@PlayerStateImpl.timeline = timeline
             this@PlayerStateImpl.mediaItemIndex = player.currentMediaItemIndex
@@ -279,22 +291,11 @@ internal class PlayerStateImpl(
         }
     }
 
-    var isListening = false
-        private set
-
-    fun registerListener() {
-        if (!isListening) {
-            player.addListener(innerListener)
-            player.addListener(listener)
-            isListening = true
-        }
+    init {
+        player.addListener(listener)
     }
 
-    fun unregisterListener() {
-        if (isListening) {
-            isListening = false
-            player.removeListener(listener)
-            player.removeListener(innerListener)
-        }
+    override fun dispose() {
+        player.removeListener(listener)
     }
 }

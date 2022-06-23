@@ -30,7 +30,7 @@ fun SimpleController(
 ) {
     Crossfade(targetState = mediaState.isControllerShowing, modifier) { isShowing ->
         if (isShowing) {
-            val controllerState = rememberControllerState(playerState = mediaState.playerState)
+            val controllerState = rememberControllerState(mediaState)
             var scrubbing by remember { mutableStateOf(false) }
             val hideWhenTimeout = !mediaState.shouldShowControllerIndefinitely && !scrubbing
             var hideEffectReset by remember { mutableStateOf(0) }
@@ -55,19 +55,16 @@ fun SimpleController(
                     modifier = Modifier
                         .size(52.dp)
                         .clickable {
-                            mediaState.playerState?.run {
+                            mediaState.player?.run {
                                 hideEffectReset++
-                                if (controllerState.showPause) player.pause()
+                                if (controllerState.showPause) pause()
                                 else {
                                     if (playbackState == Player.STATE_IDLE) {
-                                        player.prepare()
+                                        prepare()
                                     } else if (playbackState == Player.STATE_ENDED) {
-                                        player.seekTo(
-                                            player.currentMediaItemIndex,
-                                            C.TIME_UNSET
-                                        )
+                                        seekTo(currentMediaItemIndex, C.TIME_UNSET)
                                     }
-                                    player.play()
+                                    play()
                                 }
                             }
                         }
