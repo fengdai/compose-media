@@ -4,6 +4,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.runtime.*
@@ -16,8 +17,6 @@ import androidx.compose.ui.unit.dp
 import com.github.fengdai.compose.media.MediaState
 import com.github.fengdai.compose.media.TimeBar
 import com.github.fengdai.compose.media.rememberControllerState
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.Player
 import kotlinx.coroutines.delay
 
 /**
@@ -54,19 +53,12 @@ fun SimpleController(
                     contentDescription = null,
                     modifier = Modifier
                         .size(52.dp)
-                        .clickable {
-                            mediaState.player?.run {
-                                hideEffectReset++
-                                if (controllerState.showPause) pause()
-                                else {
-                                    if (playbackState == Player.STATE_IDLE) {
-                                        prepare()
-                                    } else if (playbackState == Player.STATE_ENDED) {
-                                        seekTo(currentMediaItemIndex, C.TIME_UNSET)
-                                    }
-                                    play()
-                                }
-                            }
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                        ) {
+                            hideEffectReset++
+                            controllerState.playOrPause()
                         }
                         .align(Alignment.Center),
                     colorFilter = ColorFilter.tint(Color.White)

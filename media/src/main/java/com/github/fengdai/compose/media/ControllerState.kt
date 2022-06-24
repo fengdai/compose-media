@@ -27,6 +27,7 @@ class ControllerState internal constructor(
     stateOfPlayerState: State<PlayerState?>
 ) {
     private val playerState: PlayerState? by stateOfPlayerState
+    private val player: Player? get() = playerState?.player
 
     /**
      * If ture, show pause button. Otherwise, show play button.
@@ -37,6 +38,27 @@ class ControllerState internal constructor(
                     && playbackState != Player.STATE_IDLE
                     && playWhenReady
         } ?: false
+    }
+
+    /**
+     * Play or pause the player.
+     */
+    fun playOrPause() {
+        player?.run {
+            if (playbackState == Player.STATE_IDLE
+                || playbackState == Player.STATE_ENDED
+                || !playWhenReady
+            ) {
+                if (playbackState == Player.STATE_IDLE) {
+                    prepare()
+                } else if (playbackState == Player.STATE_ENDED) {
+                    seekTo(currentMediaItemIndex, C.TIME_UNSET)
+                }
+                play()
+            } else {
+                pause()
+            }
+        }
     }
 
     /**
