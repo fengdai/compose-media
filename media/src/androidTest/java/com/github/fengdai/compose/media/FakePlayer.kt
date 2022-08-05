@@ -1,5 +1,6 @@
 package com.github.fengdai.compose.media
 
+import android.os.Looper
 import android.view.SurfaceView
 import android.view.TextureView
 import com.google.android.exoplayer2.*
@@ -195,5 +196,9 @@ open class FakePlayer : StubPlayer() {
 
     override fun getCurrentCues(): List<Cue> {
         return emptyList()
+    }
+
+    override fun getApplicationLooper(): Looper {
+        return Looper.getMainLooper()
     }
 }
