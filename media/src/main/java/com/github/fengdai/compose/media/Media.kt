@@ -1,6 +1,5 @@
 package com.github.fengdai.compose.media
 
-import android.graphics.BitmapFactory
 import android.view.SurfaceView
 import android.view.TextureView
 import android.view.View
@@ -15,8 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -201,13 +198,13 @@ fun Media(
         }
 
         // artwork in audio stream
-        val artworkPainter: Painter? = when {
+        val artworkPainter = when {
             // non video track is selected, can use artwork
             state.isVideoTrackSelected == false -> {
                 if (!useArtwork) null
-                else rememberBitmapPainter(state.artworkData) ?: defaultArtworkPainter
+                else state.artworkPainter ?: defaultArtworkPainter
             }
-            keepContentOnPlayerReset -> state.artworkPainter
+            keepContentOnPlayerReset -> state.usingArtworkPainter
             else -> null
         }
         if (artworkPainter != null) {
@@ -221,7 +218,7 @@ fun Media(
             )
         }
         SideEffect {
-            state.artworkPainter = artworkPainter
+            state.usingArtworkPainter = artworkPainter
         }
 
         // subtitles
@@ -323,13 +320,3 @@ private fun VideoSurface(
 internal const val TestTag_VideoSurface = "VideoSurface"
 internal const val TestTag_Shutter = "Shutter"
 internal const val TestTag_Artwork = "Artwork"
-
-@Composable
-private fun rememberBitmapPainter(artworkData: ByteArray?): BitmapPainter? {
-    return if (artworkData == null) null
-    else remember(artworkData) {
-        BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
-            ?.asImageBitmap()
-            ?.run { BitmapPainter(this) }
-    }
-}

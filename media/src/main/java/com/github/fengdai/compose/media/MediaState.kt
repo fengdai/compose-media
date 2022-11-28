@@ -1,8 +1,11 @@
 package com.github.fengdai.compose.media
 
+import android.graphics.BitmapFactory
 import android.os.Looper
 import androidx.compose.runtime.*
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.PlaybackException
@@ -97,7 +100,7 @@ class MediaState(
     private val listener = object : Player.Listener {
         override fun onRenderedFirstFrame() {
             closeShutter = false
-            artworkPainter = null
+            usingArtworkPainter = null
         }
 
         override fun onEvents(player: Player, events: Player.Events) {
@@ -124,7 +127,7 @@ class MediaState(
     internal val stateOfPlayerState = mutableStateOf(initPlayer?.state())
 
     internal val contentAspectRatioRaw by derivedStateOf {
-        artworkPainter?.aspectRatio
+        usingArtworkPainter?.aspectRatio
             ?: (playerState?.videoSize ?: VideoSize.UNKNOWN).aspectRatio
     }
     private var _contentAspectRatio by mutableStateOf(0f)
@@ -149,10 +152,12 @@ class MediaState(
 
     internal var closeShutter by mutableStateOf(true)
 
-    internal val artworkData: ByteArray? by derivedStateOf {
+    internal val artworkPainter: BitmapPainter? by derivedStateOf {
         playerState?.mediaMetadata?.artworkData
+            ?.run { BitmapFactory.decodeByteArray(this, 0, size)?.asImageBitmap() }
+            ?.run { BitmapPainter(this) }
     }
-    internal var artworkPainter by mutableStateOf<Painter?>(null)
+    internal var usingArtworkPainter by mutableStateOf<Painter?>(null)
 
     internal val playerError: PlaybackException? by derivedStateOf {
         playerState?.playerError

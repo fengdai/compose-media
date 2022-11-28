@@ -97,7 +97,7 @@ class MediaArtworkTest {
         composeTestRule.onNodeWithTag(TestTag_Artwork, useUnmergedTree = true)
             .assertIsDisplayed()
 
-        assertEquals(defaultArtworkPainter, state.artworkPainter)
+        assertEquals(defaultArtworkPainter, state.usingArtworkPainter)
     }
 
     @Test
