@@ -127,6 +127,10 @@ fun Media(
             }
     }
 
+    SideEffect {
+        state.controllerAutoShow = controllerAutoShow
+    }
+
     Box(
         modifier = modifier
             .clickable(
@@ -200,11 +204,8 @@ fun Media(
         val artworkPainter: Painter? = when {
             // non video track is selected, can use artwork
             state.isVideoTrackSelected == false -> {
-                val painter =
-                    if (!useArtwork) null
-                    else rememberBitmapPainter(state.artworkData) ?: defaultArtworkPainter
-                state.artworkPainter = painter
-                painter
+                if (!useArtwork) null
+                else rememberBitmapPainter(state.artworkData) ?: defaultArtworkPainter
             }
             keepContentOnPlayerReset -> state.artworkPainter
             else -> null
@@ -218,6 +219,9 @@ fun Media(
                     .fillMaxSize(),
                 contentScale = resizeMode.contentScale
             )
+        }
+        SideEffect {
+            state.artworkPainter = artworkPainter
         }
 
         // subtitles
@@ -248,7 +252,6 @@ fun Media(
 
         // controller
         if (controller != null) {
-            state.controllerAutoShow = controllerAutoShow
             LaunchedEffect(Unit) {
                 snapshotFlow { state.player }.collect { player ->
                     if (player != null) {
