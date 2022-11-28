@@ -22,7 +22,7 @@ import com.google.android.exoplayer2.MediaItem
 fun InsideList(navController: NavHostController) {
     Scaffold(
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 title = { Text("Inside List") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {

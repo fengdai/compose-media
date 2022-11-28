@@ -25,7 +25,7 @@ import com.github.fengdai.compose.media.TimeBarScrubber
 fun TimeBars(navController: NavHostController) {
     Scaffold(
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 title = { Text("TimeBars") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {

@@ -54,7 +54,7 @@ fun FullscreenToggle(navController: NavHostController) {
     }
     Scaffold(
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 title = { Text("Fullscreen Toggle") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {

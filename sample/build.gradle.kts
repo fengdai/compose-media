@@ -4,12 +4,12 @@ plugins {
 }
 
 android {
-    compileSdk = 31
+    compileSdk = 33
 
     defaultConfig {
         applicationId = "com.github.fengdai.compose.media.sample"
         minSdk = 21
-        targetSdk = 31
+        targetSdk = 33
         versionCode = 1
         versionName = "1.0"
     }
@@ -31,6 +31,7 @@ android {
         jvmTarget = "1.8"
         freeCompilerArgs += listOf(
             "-Xopt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+            "-Xjvm-default=enable",
         )
     }
 }

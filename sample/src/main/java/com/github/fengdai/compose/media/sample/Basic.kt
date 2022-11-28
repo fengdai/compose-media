@@ -42,7 +42,7 @@ private val ControllerTypes = ControllerType.values().toList()
 fun Basic(navController: NavHostController) {
     Scaffold(
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 title = { Text("Basic") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
@@ -160,8 +160,14 @@ fun BasicContent(
                 Option("Controller", ControllerTypes, controllerType) { controllerType = it }
                 Column(Modifier.padding(start = 18.dp)) {
                     val enabled = controllerType != ControllerType.None
-                    BooleanOption("Hide On Touch", controllerHideOnTouch, enabled) { controllerHideOnTouch = it }
-                    BooleanOption("Auto Show", controllerAutoShow, enabled) { controllerAutoShow = it }
+                    BooleanOption(
+                        "Hide On Touch",
+                        controllerHideOnTouch,
+                        enabled
+                    ) { controllerHideOnTouch = it }
+                    BooleanOption("Auto Show", controllerAutoShow, enabled) {
+                        controllerAutoShow = it
+                    }
                 }
             }
         }
