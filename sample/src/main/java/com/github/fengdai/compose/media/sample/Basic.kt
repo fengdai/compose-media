@@ -17,9 +17,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.MediaItem
 import androidx.navigation.NavHostController
 import com.github.fengdai.compose.media.*
-import com.google.android.exoplayer2.MediaItem
 
 val SurfaceTypes = SurfaceType.values().toList()
 val ResizeModes = ResizeMode.values().toList()
@@ -33,7 +33,7 @@ val Urls = listOf(
 )
 
 private enum class ControllerType {
-    None, Simple, StyledPlayerControlView
+    None, Simple, PlayerControlView
 }
 
 private val ControllerTypes = ControllerType.values().toList()
@@ -138,8 +138,8 @@ fun BasicContent(
                     ControllerType.Simple -> @Composable { state ->
                         SimpleController(state, Modifier.fillMaxSize())
                     }
-                    ControllerType.StyledPlayerControlView -> @Composable { state ->
-                        StyledPlayerControlViewController(state, Modifier.fillMaxSize())
+                    ControllerType.PlayerControlView -> @Composable { state ->
+                        PlayerControlViewController(state, Modifier.fillMaxSize())
                     }
                 }
             )

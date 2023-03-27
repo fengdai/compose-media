@@ -7,10 +7,10 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.PlaybackException
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.video.VideoSize
+import androidx.media3.common.C
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
 import kotlin.math.absoluteValue
 
 /**
@@ -145,8 +145,8 @@ class MediaState(
     // false: non video track is selected
     // null: there isn't any track
     internal val isVideoTrackSelected: Boolean? by derivedStateOf {
-        playerState?.tracksInfo
-            ?.takeIf { it.trackGroupInfos.isNotEmpty() }
+        playerState?.tracks
+            ?.takeIf { it.groups.isNotEmpty() }
             ?.isTypeSelected(C.TRACK_TYPE_VIDEO)
     }
 

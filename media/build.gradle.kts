@@ -58,10 +58,10 @@ android {
 }
 
 dependencies {
-    implementation(libs.exoplayer.common)
+    implementation(libs.media3.common)
     implementation(libs.compose.foundation)
 
-    androidTestImplementation(libs.exoplayer.testutils)
+    androidTestImplementation(libs.media3.test.utils)
     androidTestImplementation(libs.kotlin.test)
     androidTestImplementation(libs.compose.ui.test)
     debugImplementation(libs.compose.ui.test.manifest)

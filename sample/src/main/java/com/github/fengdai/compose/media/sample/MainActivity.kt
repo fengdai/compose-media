@@ -40,8 +40,8 @@ class MainActivity : ComponentActivity() {
                     composable("timebars") {
                         TimeBars(navController)
                     }
-                    composable("exo-styled-player-view") {
-                        StyledPlayerViewSample()
+                    composable("exo-player-view") {
+                        PlayerViewSample()
                     }
                 }
             }

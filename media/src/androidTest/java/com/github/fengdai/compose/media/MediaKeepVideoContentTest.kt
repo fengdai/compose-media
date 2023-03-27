@@ -6,8 +6,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.TracksInfo
+import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import org.junit.Rule
 import org.junit.Test
 
@@ -18,7 +18,7 @@ class MediaKeepVideoContentTest {
     @Test
     fun donNotKeep() {
         val player = FakePlayer()
-        player.trackInfo = TestTrackInfo_Video
+        player.tracks = TestTracks_Video
         composeTestRule.setContent {
             Media(
                 state = rememberMediaState(player = player),
@@ -30,7 +30,7 @@ class MediaKeepVideoContentTest {
         composeTestRule.onNodeWithTag(TestTag_Shutter, useUnmergedTree = true)
             .assertDoesNotExist()
 
-        player.trackInfo = TracksInfo.EMPTY
+        player.tracks = Tracks.EMPTY
         composeTestRule.onNodeWithTag(TestTag_Shutter, useUnmergedTree = true)
             .assertIsDisplayed()
     }
@@ -38,7 +38,7 @@ class MediaKeepVideoContentTest {
     @Test
     fun keep() {
         val player = FakePlayer()
-        player.trackInfo = TestTrackInfo_Video
+        player.tracks = TestTracks_Video
         composeTestRule.setContent {
             Media(
                 state = rememberMediaState(player = player),
@@ -50,7 +50,7 @@ class MediaKeepVideoContentTest {
         composeTestRule.onNodeWithTag(TestTag_Shutter, useUnmergedTree = true)
             .assertDoesNotExist()
 
-        player.trackInfo = TracksInfo.EMPTY
+        player.tracks = Tracks.EMPTY
         composeTestRule.onNodeWithTag(TestTag_Shutter, useUnmergedTree = true)
             .assertDoesNotExist()
     }
@@ -59,7 +59,7 @@ class MediaKeepVideoContentTest {
     fun keepChanging() {
         var keepContentOnPlayerReset by mutableStateOf(false)
         val player = FakePlayer()
-        player.trackInfo = TestTrackInfo_Video
+        player.tracks = TestTracks_Video
         composeTestRule.setContent {
             Media(
                 state = rememberMediaState(player = player),
@@ -71,7 +71,7 @@ class MediaKeepVideoContentTest {
         composeTestRule.onNodeWithTag(TestTag_Shutter, useUnmergedTree = true)
             .assertDoesNotExist()
 
-        player.trackInfo = TracksInfo.EMPTY
+        player.tracks = Tracks.EMPTY
         composeTestRule.onNodeWithTag(TestTag_Shutter, useUnmergedTree = true)
             .assertIsDisplayed()
 
@@ -87,7 +87,7 @@ class MediaKeepVideoContentTest {
     @Test
     fun playerChangingDonNotKeep() {
         val videoPlayer = FakePlayer()
-        videoPlayer.trackInfo = TestTrackInfo_Video
+        videoPlayer.tracks = TestTracks_Video
 
         var player by mutableStateOf<Player?>(videoPlayer)
         composeTestRule.setContent {
@@ -102,7 +102,7 @@ class MediaKeepVideoContentTest {
             .assertDoesNotExist()
 
         val newVideoPlayer = FakePlayer()
-        newVideoPlayer.trackInfo = TestTrackInfo_Video
+        newVideoPlayer.tracks = TestTracks_Video
         player = newVideoPlayer
         composeTestRule.onNodeWithTag(TestTag_Shutter, useUnmergedTree = true)
             .assertIsDisplayed()
@@ -118,7 +118,7 @@ class MediaKeepVideoContentTest {
     @Test
     fun playerChangingKeep() {
         val videoPlayer = FakePlayer()
-        videoPlayer.trackInfo = TestTrackInfo_Video
+        videoPlayer.tracks = TestTracks_Video
 
         var player by mutableStateOf<Player?>(videoPlayer)
         composeTestRule.setContent {
@@ -133,7 +133,7 @@ class MediaKeepVideoContentTest {
             .assertDoesNotExist()
 
         val newVideoPlayer = FakePlayer()
-        newVideoPlayer.trackInfo = TestTrackInfo_Video
+        newVideoPlayer.tracks = TestTracks_Video
         player = newVideoPlayer
         composeTestRule.onNodeWithTag(TestTag_Shutter, useUnmergedTree = true)
             .assertDoesNotExist()

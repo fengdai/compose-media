@@ -7,7 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import com.google.android.exoplayer2.Player
+import androidx.media3.common.Player
 import org.junit.Rule
 import org.junit.Test
 

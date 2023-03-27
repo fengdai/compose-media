@@ -41,7 +41,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.compose.material3)
-    implementation(libs.exoplayer.core)
-    implementation(libs.exoplayer.ui)
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
     implementation(libs.accompanist.systemuicontroller)
 }

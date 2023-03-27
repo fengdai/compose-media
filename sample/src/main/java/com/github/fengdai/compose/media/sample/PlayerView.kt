@@ -14,13 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.ui.PlayerView
 import com.github.fengdai.compose.media.SurfaceType
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.ui.StyledPlayerView
 
 @Composable
-fun StyledPlayerViewSample() {
+fun PlayerViewSample() {
     var setPlayer by rememberSaveable { mutableStateOf(true) }
     var url by rememberSaveable { mutableStateOf(Urls[0]) }
 
@@ -37,7 +37,7 @@ fun StyledPlayerViewSample() {
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        StyledPlayerViewMedia(
+        PlayerViewMedia(
             player.takeIf { setPlayer },
             modifier = Modifier
                 .aspectRatio(1f)
@@ -49,7 +49,7 @@ fun StyledPlayerViewSample() {
 }
 
 @Composable
-private fun StyledPlayerViewMedia(
+private fun PlayerViewMedia(
     player: Player?,
     modifier: Modifier = Modifier,
     surfaceType: SurfaceType = SurfaceType.TextureView
@@ -59,7 +59,7 @@ private fun StyledPlayerViewMedia(
             AndroidView(
                 factory = { context ->
                     LayoutInflater.from(context)
-                        .inflate(R.layout.styled_player_view, null) as StyledPlayerView
+                        .inflate(R.layout.player_view, null) as PlayerView
                 },
                 modifier = Modifier
                     .align(Alignment.Center)

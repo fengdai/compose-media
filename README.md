@@ -1,6 +1,7 @@
 # Media player UI for Jetpack Compose
 
-A library which provides a `Media` composable component for [ExoPlayer][exoplayer] media playbacks.
+A library which provides a `Media` composable component for [AndroidX Media3][media3] (the successor
+of the [ExoPlayer][exoplayer]) media playbacks.
 
 ```Kotlin
 val state = rememberMediaState(player = player)
@@ -52,6 +53,8 @@ Snapshots of the development version are available in [Sonatype's `snapshots` re
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+
+[media3]: https://github.com/androidx/media
 
 [exoplayer]: https://github.com/google/ExoPlayer/
 

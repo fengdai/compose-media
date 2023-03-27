@@ -21,7 +21,7 @@ import com.github.fengdai.compose.media.MediaState
 import com.github.fengdai.compose.media.ShowBuffering
 import com.github.fengdai.compose.media.rememberMediaState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.google.android.exoplayer2.MediaItem
+import androidx.media3.common.MediaItem
 
 @Composable
 fun FullscreenToggle(navController: NavHostController) {

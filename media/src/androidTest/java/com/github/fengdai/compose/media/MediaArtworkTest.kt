@@ -12,9 +12,9 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
-import com.google.android.exoplayer2.MediaMetadata
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.TracksInfo
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -33,7 +33,7 @@ class MediaArtworkTest {
             }
             .build()
 
-        override fun getCurrentTracksInfo(): TracksInfo = TestTrackInfo_Audio
+        override fun getCurrentTracks(): Tracks = TestTracks_Audio
 
         override fun getMediaMetadata(): MediaMetadata = mediaMetadata
     }

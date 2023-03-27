@@ -3,11 +3,8 @@ package com.github.fengdai.compose.media
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.google.android.exoplayer2.*
-import com.google.android.exoplayer2.audio.AudioAttributes
-import com.google.android.exoplayer2.text.Cue
-import com.google.android.exoplayer2.trackselection.TrackSelectionParameters
-import com.google.android.exoplayer2.video.VideoSize
+import androidx.media3.common.*
+import androidx.media3.common.text.CueGroup
 
 /**
  * Create a instance of [PlayerState] and register a [listener][Player.Listener] to the [Player] to
@@ -30,7 +27,7 @@ interface PlayerState {
 
     val mediaItemIndex: Int
 
-    val tracksInfo: TracksInfo
+    val tracks: Tracks
 
     val mediaMetadata: MediaMetadata
 
@@ -79,7 +76,7 @@ interface PlayerState {
 
     val videoSize: VideoSize
 
-    val cues: List<Cue>
+    val cues: CueGroup
 
     fun dispose()
 }
@@ -93,7 +90,7 @@ internal class PlayerStateImpl(
     override var mediaItemIndex: Int by mutableStateOf(player.currentMediaItemIndex)
         private set
 
-    override var tracksInfo: TracksInfo by mutableStateOf(player.currentTracksInfo)
+    override var tracks: Tracks by mutableStateOf(player.currentTracks)
         private set
 
     override var mediaMetadata: MediaMetadata by mutableStateOf(player.mediaMetadata)
@@ -165,7 +162,7 @@ internal class PlayerStateImpl(
     override var videoSize: VideoSize by mutableStateOf(player.videoSize)
         private set
 
-    override var cues: List<Cue> by mutableStateOf(player.currentCues)
+    override var cues: CueGroup by mutableStateOf(player.currentCues)
         private set
 
     private val listener = object : Player.Listener {
@@ -174,8 +171,8 @@ internal class PlayerStateImpl(
             this@PlayerStateImpl.mediaItemIndex = player.currentMediaItemIndex
         }
 
-        override fun onTracksInfoChanged(tracksInfo: TracksInfo) {
-            this@PlayerStateImpl.tracksInfo = tracksInfo
+        override fun onTracksChanged(tracks: Tracks) {
+            this@PlayerStateImpl.tracks = tracks
         }
 
         override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
@@ -286,7 +283,7 @@ internal class PlayerStateImpl(
             //
         }
 
-        override fun onCues(cues: List<Cue>) {
+        override fun onCues(cues: CueGroup) {
             this@PlayerStateImpl.cues = cues
         }
     }

@@ -1,9 +1,9 @@
 package com.github.fengdai.compose.media
 
 import androidx.compose.runtime.*
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.Timeline
+import androidx.media3.common.C
+import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 
 /**
  * Create and [remember] a [ControllerState] instance.

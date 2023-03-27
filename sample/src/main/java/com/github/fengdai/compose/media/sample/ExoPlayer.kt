@@ -2,10 +2,10 @@ package com.github.fengdai.compose.media.sample
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DefaultDataSource
+import androidx.media3.common.Player
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
 
 @Composable
 fun rememberManagedExoPlayer(): State<Player?> = rememberManagedPlayer { context ->

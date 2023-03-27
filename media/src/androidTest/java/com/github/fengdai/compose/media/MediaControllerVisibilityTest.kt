@@ -5,8 +5,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.testutil.FakeTimeline
+import androidx.media3.common.Player
+import androidx.media3.test.utils.FakeTimeline
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertFalse

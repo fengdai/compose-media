@@ -4,31 +4,31 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
+import androidx.media3.common.C
+import androidx.media3.common.Format
+import androidx.media3.common.TrackGroup
+import androidx.media3.common.Tracks
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.github.fengdai.compose.media.test.R
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.Format
-import com.google.android.exoplayer2.TracksInfo
-import com.google.android.exoplayer2.source.TrackGroup
 import java.io.ByteArrayOutputStream
 
-val TestTrackInfo_Audio = TracksInfo(
+val TestTracks_Audio = Tracks(
     listOf(
-        TracksInfo.TrackGroupInfo(
-            TrackGroup(Format.Builder().build()),
+        Tracks.Group(
+            TrackGroup(Format.Builder().setSampleMimeType("audio/mp3").build()),
+            false,
             intArrayOf(C.FORMAT_HANDLED),
-            C.TRACK_TYPE_AUDIO,
             booleanArrayOf(true)
         )
     )
 )
 
-val TestTrackInfo_Video = TracksInfo(
+val TestTracks_Video = Tracks(
     listOf(
-        TracksInfo.TrackGroupInfo(
-            TrackGroup(Format.Builder().build()),
+        Tracks.Group(
+            TrackGroup(Format.Builder().setSampleMimeType("video/mp4").build()),
+            false,
             intArrayOf(C.FORMAT_HANDLED),
-            C.TRACK_TYPE_VIDEO,
             booleanArrayOf(true)
         )
     )

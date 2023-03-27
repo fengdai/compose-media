@@ -18,7 +18,7 @@ private val Samples = listOf(
     "list" to "Inside List",
     "fullscreen-toggle" to "Fullscreen Toggle",
     "timebars" to "TimeBars",
-//    "exo-styled-player-view" to "Exo StyledPlayerView",
+//    "exo-player-view" to "Exo PlayerView",
 )
 
 @Composable

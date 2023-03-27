@@ -13,10 +13,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.MediaItem
 import androidx.navigation.NavHostController
 import com.github.fengdai.compose.media.Media
 import com.github.fengdai.compose.media.rememberMediaState
-import com.google.android.exoplayer2.MediaItem
 
 @Composable
 fun InsideList(navController: NavHostController) {

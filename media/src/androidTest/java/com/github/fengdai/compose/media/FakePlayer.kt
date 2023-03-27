@@ -3,13 +3,9 @@ package com.github.fengdai.compose.media
 import android.os.Looper
 import android.view.SurfaceView
 import android.view.TextureView
-import com.google.android.exoplayer2.*
-import com.google.android.exoplayer2.audio.AudioAttributes
-import com.google.android.exoplayer2.testutil.StubPlayer
-import com.google.android.exoplayer2.text.Cue
-import com.google.android.exoplayer2.trackselection.TrackSelectionParameters
-import com.google.android.exoplayer2.util.FlagSet
-import com.google.android.exoplayer2.video.VideoSize
+import androidx.media3.common.*
+import androidx.media3.common.text.CueGroup
+import androidx.media3.test.utils.StubPlayer
 import java.util.concurrent.CopyOnWriteArrayList
 
 open class FakePlayer : StubPlayer() {
@@ -32,12 +28,12 @@ open class FakePlayer : StubPlayer() {
             }
         }
     var playWhenReady_: Boolean = false
-    var trackInfo: TracksInfo = TracksInfo.EMPTY
+    var tracks: Tracks = Tracks.EMPTY
         set(value) {
             val previousValue = field
             field = value
             if (value != previousValue) {
-                listeners.forEach { it.onTracksInfoChanged(value) }
+                listeners.forEach { it.onTracksChanged(value) }
             }
         }
     var mediaMetadata_: MediaMetadata = MediaMetadata.EMPTY
@@ -90,8 +86,8 @@ open class FakePlayer : StubPlayer() {
         return 0
     }
 
-    override fun getCurrentTracksInfo(): TracksInfo {
-        return trackInfo
+    override fun getCurrentTracks(): Tracks {
+        return tracks
     }
 
     override fun getMediaMetadata(): MediaMetadata {
@@ -150,8 +146,8 @@ open class FakePlayer : StubPlayer() {
         return false
     }
 
-    override fun getPlayerError(): PlaybackException {
-        return PlaybackException(null, null, PlaybackException.ERROR_CODE_UNSPECIFIED)
+    override fun getPlayerError(): PlaybackException? {
+        return null
     }
 
     override fun getPlaybackParameters(): PlaybackParameters {
@@ -194,8 +190,8 @@ open class FakePlayer : StubPlayer() {
         return VideoSize.UNKNOWN
     }
 
-    override fun getCurrentCues(): List<Cue> {
-        return emptyList()
+    override fun getCurrentCues(): CueGroup {
+        return CueGroup.EMPTY_TIME_ZERO
     }
 
     override fun getApplicationLooper(): Looper {
