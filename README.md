@@ -3,6 +3,8 @@
 A library which provides a `Media` composable component for [AndroidX Media3][media3] (the successor
 of the [ExoPlayer][exoplayer]) media playbacks.
 
+![basic](/arts/basic.png)
+
 ```Kotlin
 val state = rememberMediaState(player = player)
 Media(
