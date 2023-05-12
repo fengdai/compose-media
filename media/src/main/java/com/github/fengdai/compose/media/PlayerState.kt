@@ -3,7 +3,16 @@ package com.github.fengdai.compose.media
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.media3.common.*
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.DeviceInfo
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackParameters
+import androidx.media3.common.Player
+import androidx.media3.common.Timeline
+import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.Tracks
+import androidx.media3.common.VideoSize
 import androidx.media3.common.text.CueGroup
 
 /**
@@ -250,20 +259,12 @@ internal class PlayerStateImpl(
             this@PlayerStateImpl.maxSeekToPreviousPosition = maxSeekToPreviousPositionMs
         }
 
-        override fun onAudioSessionIdChanged(audioSessionId: Int) {
-            //
-        }
-
         override fun onAudioAttributesChanged(audioAttributes: AudioAttributes) {
             this@PlayerStateImpl.audioAttributes = audioAttributes
         }
 
         override fun onVolumeChanged(volume: Float) {
             this@PlayerStateImpl.volume = volume
-        }
-
-        override fun onSkipSilenceEnabledChanged(skipSilenceEnabled: Boolean) {
-            //
         }
 
         override fun onDeviceInfoChanged(deviceInfo: DeviceInfo) {
@@ -277,10 +278,6 @@ internal class PlayerStateImpl(
 
         override fun onVideoSizeChanged(videoSize: VideoSize) {
             this@PlayerStateImpl.videoSize = videoSize
-        }
-
-        override fun onSurfaceSizeChanged(width: Int, height: Int) {
-            //
         }
 
         override fun onCues(cues: CueGroup) {
